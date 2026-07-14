@@ -14,17 +14,18 @@ shared blocker. Tick items as they land; note the session date.
 - [x] README, CLAUDE.md, docs/ (ARCHITECTURE, ROADMAP, SESSION_LOG, DATA_PROVIDERS)
 - [x] App launches locally (verified: health endpoint + rendered page)
 
-## Phase 1 — App shell (CURRENT)
+## Phase 1 — App shell ✅ (2026-07-14)
 
-- [ ] Terminal shell layout: sidebar, top command bar, tab workspace, status bar
-- [ ] Client-side routing wired to tabs
-- [ ] Dark theme finalized (tokens exist in styles.css)
-- [ ] Keyboard shortcuts (command bar focus, tab switching, close tab)
-- [ ] Command parser v0 + mnemonic registry module (navigation-only commands)
-- [ ] Placeholder modules with realistic empty/loading/error states
+- [x] Terminal shell layout: sidebar, top command bar, tab workspace, status bar
+- [x] Client-side routing wired to tabs (hash sync, back/forward, deep links)
+- [x] Dark theme finalized (tokens in styles.css)
+- [x] Keyboard shortcuts (/, Ctrl+K, type-to-command, Alt+1–9, Alt+PgUp/PgDn, Alt+W)
+- [x] Command parser v0 + mnemonic registry module (10 commands, fuzzy search)
+- [x] Placeholder modules with realistic empty/loading/error states
       (monitor, quote, chart, news, calendar, watchlist, alerts, notes, settings, help)
+- [x] Bonus: recent-command history persisted via API into SQLite
 
-## Phase 2 — Data layer
+## Phase 2 — Data layer (CURRENT)
 
 - [ ] Provider adapter interfaces (`server/providers/`)
 - [ ] Symbol search; quotes; chart time series; news feed; macro calendar

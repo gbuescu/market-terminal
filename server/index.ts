@@ -7,27 +7,17 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { getMeta, runMigrations } from './db.ts';
+import { runMigrations } from './db.ts';
+import { api } from './routes.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.MKT_API_PORT ?? 4780);
 
-const schemaVersion = runMigrations();
+runMigrations();
 
 const app = express();
 app.use(express.json());
-
-app.get('/api/health', (_req, res) => {
-  res.json({
-    ok: true,
-    app: 'market-terminal',
-    version: '0.1.0',
-    schemaVersion: Number(getMeta('schema_version') ?? 0),
-    migrationsDefined: schemaVersion,
-    node: process.version,
-    time: new Date().toISOString(),
-  });
-});
+app.use('/api', api);
 
 // Serve the built client when it exists (production mode). In dev, Vite
 // serves the client on :5173 and proxies /api here instead.

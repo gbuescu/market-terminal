@@ -4,6 +4,41 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 2 — 2026-07-14 — Phase 1: App shell
+
+**Repo state at start:** Phase 0 scaffold, commit `5b80407`.
+
+**Built:**
+- Command system: `client/src/commands/registry.ts` (10 mnemonics: MON, Q,
+  GP, N, ECO, W, ALRT, NOTE, SET, HELP + aliases/keywords) and `parser.ts`
+  (SYMBOL FUNCTION / FUNCTION SYMBOL / bare mnemonic + ranked fuzzy
+  plain-English suggestions).
+- Workspace: `state/workspace.tsx` — tab state (one tab per module+symbol,
+  re-run activates), URL-hash routing (`#/quote/AAPL`) with back/forward
+  support, document-title sync, recent-command history (optimistic local +
+  POST to API).
+- Shell components: CommandBar (suggestions dropdown, recents on empty
+  focus, Tab-complete, unknown-command feedback, `/`+Ctrl+K+type-to-focus),
+  Sidebar (4 sections), TabStrip (indices, middle-click close), StatusBar
+  (health poll, NO TRADING line, shortcut hints), ModuleFrame + shared
+  StateView (loading/empty/error/info).
+- 10 placeholder modules; Settings (live health + provider table) and Help
+  (cheat sheet auto-generated from the registry) are genuinely functional.
+- Server: `server/routes.ts` — GET/POST `/api/commands/recent` (dedup,
+  capped at 200 rows), health moved into router.
+
+**Checks:** typecheck ✓ · lint ✓ · build ✓ · live interaction test in
+browser ✓ (AAPL Q opens quote tab; fuzzy "calendar"→ECO; Alt+1 tab jump;
+Alt+W close; hash `#/quote/AAPL`; recents round-trip through SQLite).
+Known tooling note: Browser-pane screenshots timed out this session (pane
+quirk); all verification done via DOM/JS inspection instead.
+
+**Next session:** Phase 2 — data layer (provider adapter interfaces,
+symbol search, quotes, series, news, calendar, caching, stale indicators,
+settings for keys; demo/seed provider first so zero-key usage works).
+
+---
+
 ## Session 1 — 2026-07-14 — Phase 0: Foundation
 
 **Repo state at start:** empty (greenfield; created sibling to the unrelated
