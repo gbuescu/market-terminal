@@ -1,0 +1,133 @@
+/* Terminal design tokens — dark-first, dense, tabular numerals. */
+:root {
+  --bg: #0a0e14;
+  --bg-panel: #10161f;
+  --bg-raised: #161e2a;
+  --border: #232d3d;
+  --text: #c7d0dc;
+  --text-dim: #6b7789;
+  --accent: #f0a500; /* amber — primary terminal accent */
+  --up: #2ecc71;
+  --down: #e74c3c;
+  --font-mono: "Cascadia Mono", "Consolas", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.terminal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topbar,
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.statusbar {
+  border-bottom: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.brand {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.tag {
+  color: var(--text-dim);
+  font-size: 11px;
+  border: 1px solid var(--border);
+  padding: 0 6px;
+  border-radius: 2px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.clock {
+  color: var(--text-dim);
+}
+
+.conn-up {
+  color: var(--up);
+}
+.conn-down {
+  color: var(--down);
+}
+.conn-connecting {
+  color: var(--text-dim);
+}
+
+.workspace {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 12px;
+  max-width: 640px;
+}
+
+.panel-title {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.panel p {
+  margin-bottom: 8px;
+}
+
+.kv td {
+  padding: 1px 14px 1px 0;
+}
+
+.kv td:first-child {
+  color: var(--text-dim);
+}
+
+.err {
+  color: var(--down);
+}
+
+code {
+  background: var(--bg-raised);
+  padding: 0 4px;
+  border-radius: 2px;
+}

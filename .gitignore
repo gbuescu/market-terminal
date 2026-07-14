@@ -1,0 +1,10 @@
+node_modules/
+client/dist/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+.run/
+*.log
+.env
+.env.*
+!.env.example
