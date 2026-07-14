@@ -38,13 +38,19 @@ shared blocker. Tick items as they land; note the session date.
       API key storage (finnhub/alphavantage/fred slots for future adapters);
       zero-key usage works (yahoo keyless; demo offline)
 
-## Phase 3 — Core modules (CURRENT)
+## Phase 3 — Core modules ✅ (2026-07-14)
 
-- [ ] Global markets monitor
-- [ ] Quote page · chart page · news page · economic calendar
-- [ ] Watchlists · notes · alerts center (persisted in SQLite)
+- [x] Global markets monitor (live since Phase 2)
+- [x] Quote page (+ GP/N/ALRT cross-nav) · chart page · news page ·
+      economic calendar (live since Phase 2)
+- [x] Watchlists: multiple named lists, live-quoted rows, symbol → quote
+      cross-nav (migration 003)
+- [x] Notes: list + editor, optional symbol scoping ("NVDA NOTE")
+- [x] Alerts center: above/below level alerts, server engine evaluates every
+      60s through the provider registry (notify-only), triggered/active
+      sections, status-bar "⚠ N ALERTS TRIGGERED" flag, "AAPL ALRT" prefill
 
-## Phase 4 — Analytics modules
+## Phase 4 — Analytics modules (CURRENT)
 
 - [ ] Equity screener · relative value · peer compare
 - [ ] Company fundamentals · financial statements

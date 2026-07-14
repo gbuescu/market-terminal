@@ -755,6 +755,139 @@ a.news-headline:hover {
   margin-right: 6px;
 }
 
+/* ---------- workspace objects (watchlists, notes, alerts) ---------- */
+
+.split-page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.split-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.side-row {
+  display: flex;
+  align-items: center;
+}
+
+.side-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 3px 4px;
+  min-width: 0;
+}
+
+.side-row-main:hover {
+  background: var(--bg-hover);
+}
+
+.note-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  color: var(--text-dim);
+  padding: 0 6px;
+}
+
+.icon-btn:hover {
+  color: var(--down);
+}
+
+.link-btn {
+  padding: 0;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.inline-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.text-input-full {
+  flex: 1;
+  width: auto;
+  min-width: 120px;
+}
+
+.wl-table {
+  max-width: 720px;
+}
+
+.wl-table .icon-btn {
+  visibility: hidden;
+}
+
+.wl-table tr:hover .icon-btn {
+  visibility: visible;
+}
+
+.note-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 760px;
+}
+
+.note-body {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font: inherit;
+  padding: 6px 8px;
+  min-height: 260px;
+  resize: vertical;
+  outline: none;
+}
+
+.note-body:focus {
+  border-color: var(--accent);
+}
+
+.alerts-disclaimer {
+  margin-bottom: 8px;
+}
+
+.alert-form {
+  margin-bottom: 12px;
+}
+
+.alerts-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.alert-flag {
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 2px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
 /* ---------- status bar ---------- */
 
 .statusbar {

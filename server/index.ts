@@ -7,7 +7,9 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import { startAlertEngine } from './alerts.ts';
 import { runMigrations } from './db.ts';
+import { domain } from './domain.ts';
 import { api } from './routes.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -18,6 +20,9 @@ runMigrations();
 const app = express();
 app.use(express.json());
 app.use('/api', api);
+app.use('/api', domain);
+
+startAlertEngine();
 
 // Serve the built client when it exists (production mode). In dev, Vite
 // serves the client on :5173 and proxies /api here instead.

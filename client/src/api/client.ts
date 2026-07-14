@@ -29,11 +29,33 @@ export async function getJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export async function putJson(path: string, body: unknown): Promise<void> {
+async function bodyRequest(method: string, path: string, body?: unknown): Promise<unknown> {
   const res = await fetch(path, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    method,
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const parsed = (await res.json()) as { error?: string };
+      if (parsed.error) message = parsed.error;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(res.status, message);
+  }
+  return res.json().catch(() => undefined);
+}
+
+export async function putJson(path: string, body: unknown): Promise<void> {
+  await bodyRequest('PUT', path, body);
+}
+
+export async function postJson<T = unknown>(path: string, body?: unknown): Promise<T> {
+  return (await bodyRequest('POST', path, body)) as T;
+}
+
+export async function deleteJson(path: string): Promise<void> {
+  await bodyRequest('DELETE', path);
 }

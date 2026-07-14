@@ -1,16 +1,23 @@
 import type { Quote as QuoteDto } from '../../../shared/types';
 import { useEnvelope } from '../api/useData';
+import { parse } from '../commands/parser';
 import { DataBadge } from '../components/DataBadge';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { fmtChange, fmtPct, fmtPrice, fmtTime, fmtVolume, signClass } from '../lib/format';
-import type { Tab } from '../state/workspace';
+import { type Tab, useWorkspace } from '../state/workspace';
 
 export function Quote({ tab }: { tab: Tab }) {
+  const ws = useWorkspace();
   const symbol = tab.symbol ?? null;
   const { state, refresh } = useEnvelope<QuoteDto[]>(
     symbol ? `/api/quotes?symbols=${encodeURIComponent(symbol)}` : null,
     30_000,
   );
+
+  const crossNav = (mnemonic: string) => {
+    const inv = parse(`${symbol} ${mnemonic}`);
+    if (inv) ws.execute(inv);
+  };
 
   if (!symbol) {
     return (
@@ -33,6 +40,15 @@ export function Quote({ tab }: { tab: Tab }) {
       toolbar={
         <>
           {state.status === 'ready' && <DataBadge env={state.env} />}
+          <button type="button" className="btn" title="Open chart" onClick={() => crossNav('GP')}>
+            GP
+          </button>
+          <button type="button" className="btn" title="Open news" onClick={() => crossNav('N')}>
+            N
+          </button>
+          <button type="button" className="btn" title="Set alert" onClick={() => crossNav('ALRT')}>
+            ALRT
+          </button>
           <button type="button" className="btn" onClick={refresh}>
             REFRESH
           </button>

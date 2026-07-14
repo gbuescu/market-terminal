@@ -96,9 +96,9 @@ export const COMMANDS: readonly CommandDef[] = [
     name: 'Alerts Center',
     description: 'Price/level alerts — notify only, never act',
     moduleId: 'alerts',
-    takesSymbol: 'none',
+    takesSymbol: 'optional',
     keywords: ['notify', 'trigger', 'level', 'threshold'],
-    examples: ['ALRT'],
+    examples: ['ALRT', 'AAPL ALRT'],
   },
   {
     mnemonic: 'NOTE',

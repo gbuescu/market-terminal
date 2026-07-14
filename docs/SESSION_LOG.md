@@ -4,6 +4,39 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 4 — 2026-07-14 — Phase 3: Core modules
+
+**Repo state at start:** Phase 2 data layer, commit `cf8bb3d`.
+
+**Built:**
+- Migration 003: `watchlists`, `watchlist_items` (FK cascade; foreign_keys
+  pragma now ON), `notes`, `alerts` (status CHECK constraints; deliberately
+  no order/trade shape anywhere in the schema).
+- `server/domain.ts`: CRUD routers — watchlists (+items), notes (symbol-
+  scoped optional), alerts (create/dismiss/delete + POST /alerts/evaluate).
+  Plain JSON (not envelopes — local user data, not market data).
+- `server/alerts.ts`: evaluation engine, 60s interval + 5s-after-boot pass,
+  prices active alerts through the normal provider registry, marks rows
+  triggered with price/time. Notify-only, enforced in code and comments.
+- Client: Watchlist module (multi-list, live-quoted rows, add/remove,
+  symbol→Q cross-nav), Notes module (list + editor, "NVDA NOTE" scoping),
+  Alerts module (create form, active/triggered tables, dismiss), StatusBar
+  "⚠ N ALERTS TRIGGERED" flag (opens ALRT), Quote toolbar GP/N/ALRT
+  cross-nav, registry: ALRT now takes an optional symbol.
+
+**Verified:** typecheck ✓ lint ✓ build ✓; API: watchlist/notes CRUD round-
+trips, alert engine triggered a level-1 AAPL alert @ live 317.31 while
+leaving a 99999 alert active; browser: watchlist with live quotes, alerts
+center sections, status-bar flag. Test alerts/note cleaned up; "Tech"
+starter watchlist left in place.
+
+**Next session:** Phase 4 — analytics modules (equity screener, peer
+compare, fundamentals, statements, rates/FX/commodities dashboards).
+Note: these need a fundamentals-capable provider (Finnhub/Alpha Vantage
+keys, or extend yahoo carefully) — decide at session start.
+
+---
+
 ## Session 3 — 2026-07-14 — Phase 2: Data layer
 
 **Repo state at start:** Phase 1 shell, commit `62cec8e`.

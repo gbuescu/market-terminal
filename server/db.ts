@@ -16,6 +16,7 @@ mkdirSync(dataDir, { recursive: true });
 
 export const db = new DatabaseSync(join(dataDir, 'terminal.db'));
 db.exec('PRAGMA journal_mode = WAL;');
+db.exec('PRAGMA foreign_keys = ON;');
 db.exec('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);');
 
 const migrations: string[] = [
@@ -37,6 +38,42 @@ const migrations: string[] = [
      value TEXT NOT NULL,
      fetched_at INTEGER NOT NULL,
      ttl_ms INTEGER NOT NULL
+   );`,
+  // 003 — persisted workspace objects: watchlists, notes, alerts.
+  // Alerts are notify-only by design; there is deliberately no order/trade
+  // shape anywhere in this schema.
+  `CREATE TABLE watchlists (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     name TEXT NOT NULL UNIQUE,
+     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+   );
+   CREATE TABLE watchlist_items (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     watchlist_id INTEGER NOT NULL REFERENCES watchlists(id) ON DELETE CASCADE,
+     symbol TEXT NOT NULL,
+     name TEXT,
+     position INTEGER NOT NULL DEFAULT 0,
+     added_at TEXT NOT NULL DEFAULT (datetime('now')),
+     UNIQUE (watchlist_id, symbol)
+   );
+   CREATE TABLE notes (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     symbol TEXT,
+     title TEXT NOT NULL,
+     body TEXT NOT NULL DEFAULT '',
+     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+   );
+   CREATE TABLE alerts (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     symbol TEXT NOT NULL,
+     condition TEXT NOT NULL CHECK (condition IN ('above','below')),
+     level REAL NOT NULL,
+     note TEXT,
+     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','triggered','dismissed')),
+     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+     triggered_at TEXT,
+     triggered_price REAL
    );`,
 ];
 

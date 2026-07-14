@@ -112,3 +112,45 @@ export interface SettingsPayload {
   settings: Record<string, string>;
   providers: ProviderInfo[];
 }
+
+// ---------- persisted workspace objects (Phase 3) ----------
+
+export interface WatchlistItem {
+  id: number;
+  symbol: string;
+  name: string | null;
+  position: number;
+  addedAt: string;
+}
+
+export interface Watchlist {
+  id: number;
+  name: string;
+  createdAt: string;
+  items: WatchlistItem[];
+}
+
+export interface Note {
+  id: number;
+  symbol: string | null;
+  title: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AlertCondition = 'above' | 'below';
+export type AlertStatus = 'active' | 'triggered' | 'dismissed';
+
+/** Price alerts notify only — they never place, route or simulate orders. */
+export interface Alert {
+  id: number;
+  symbol: string;
+  condition: AlertCondition;
+  level: number;
+  note: string | null;
+  status: AlertStatus;
+  createdAt: string;
+  triggeredAt: string | null;
+  triggeredPrice: number | null;
+}
