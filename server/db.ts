@@ -31,6 +31,13 @@ const migrations: string[] = [
      input TEXT NOT NULL,
      ran_at TEXT NOT NULL DEFAULT (datetime('now'))
    );`,
+  // 002 — provider response cache (TTL-based; see server/cache.ts)
+  `CREATE TABLE cache (
+     key TEXT PRIMARY KEY,
+     value TEXT NOT NULL,
+     fetched_at INTEGER NOT NULL,
+     ttl_ms INTEGER NOT NULL
+   );`,
 ];
 
 export function getMeta(key: string): string | null {

@@ -25,15 +25,20 @@ shared blocker. Tick items as they land; note the session date.
       (monitor, quote, chart, news, calendar, watchlist, alerts, notes, settings, help)
 - [x] Bonus: recent-command history persisted via API into SQLite
 
-## Phase 2 — Data layer (CURRENT)
+## Phase 2 — Data layer ✅ (2026-07-14)
 
-- [ ] Provider adapter interfaces (`server/providers/`)
-- [ ] Symbol search; quotes; chart time series; news feed; macro calendar
-- [ ] Caching (SQLite + TTL) behind adapter boundary
-- [ ] Stale/delayed-data indicators end to end
-- [ ] Settings page: API keys, provider selection (app must work with zero keys)
+- [x] Provider adapter interfaces (`server/providers/`): demo + yahoo shipped;
+      fall-through between providers ONLY on Unsupported (never silent demo)
+- [x] Symbol search (API + command-bar integration); quotes; chart time series
+      (SVG chart with ranges); news feed; macro calendar (demo-only for now)
+- [x] Caching: SQLite TTL cache + in-flight dedup + stale-serve on fetch failure
+- [x] Stale/delayed-data indicators end to end (envelope → DataBadge chips:
+      SOURCE / time / DEMO / DELAYED / CACHED / STALE)
+- [x] Settings page: provider status, per-capability provider selection,
+      API key storage (finnhub/alphavantage/fred slots for future adapters);
+      zero-key usage works (yahoo keyless; demo offline)
 
-## Phase 3 — Core modules
+## Phase 3 — Core modules (CURRENT)
 
 - [ ] Global markets monitor
 - [ ] Quote page · chart page · news page · economic calendar

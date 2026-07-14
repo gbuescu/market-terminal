@@ -26,18 +26,35 @@ if you change one, record the rationale and date.
 - SQLite migrations: append-only `migrations` array in `server/db.ts`,
   versioned by `meta.schema_version`. Never edit a shipped migration.
 
-## Planned structure (later phases — do not build early)
+## Data layer (Phase 2, shipped 2026-07-14)
 
-- `server/providers/` — Phase 2. One adapter per data source implementing
-  shared interfaces (`SymbolSearch`, `Quotes`, `Series`, `News`, `Calendar`).
-  Registry picks providers per capability from settings. All caching (SQLite
-  + in-memory TTL) happens behind the adapter boundary; UI sees provider-
-  agnostic DTOs with `asOf` + `delayed` flags for stale-data indicators.
-- `client/src/commands/` — Phase 1/3. Mnemonic registry (one entry per
-  command: mnemonic, aliases, description, handler/route) + parser that
-  resolves `SYMBOL FUNCTION` (e.g. `AAPL GP`) and fuzzy plain-English input.
-- `client/src/modules/` — one folder per terminal module (quote, chart,
-  news, screener, ...), each registered as a tab-able workspace view.
+- **DTOs** live in `shared/types.ts`, imported by both sides (server with
+  `.ts` extensions, client extensionless via Vite).
+- **Envelope**: every `/api/{search,quotes,series,news,calendar}` response is
+  `{ data, source, asOf, delayed, fromCache, stale, demo }`. The client
+  renders it as `DataBadge` chips. Any new data endpoint must use
+  `serveData()` in `server/routes.ts` so labeling stays uniform.
+- **Providers** (`server/providers/`): one adapter per source implementing
+  the `Provider` interface (capabilities: search/quotes/series/news/calendar).
+  `registry.ts` picks per capability: settings override first (exclusive),
+  else default priority order, first `ready()` provider.
+- **Honesty rule (do not weaken)**: fall-through between providers only on
+  the typed `Unsupported` error. A live provider's network/data failure is
+  never silently replaced by demo data — the cache serves a stale copy
+  (flagged) or the client shows an error with a hint to switch providers.
+- **Cache** (`server/cache.ts`): SQLite `cache` table, TTL per route,
+  in-flight dedup, stale-serve on refresh failure. Keys include provider id,
+  so forcing providers never mixes cached payloads.
+- **Client data access**: `client/src/api/useData.ts` (`useEnvelope`) only;
+  modules never call providers or external URLs directly.
+
+## Existing structure notes
+
+- `client/src/commands/` — mnemonic registry + parser; command bar also
+  queries `/api/search` (debounced) for symbol suggestions when input isn't
+  an exact command.
+- `client/src/modules/` — one file per terminal module, registered in
+  `modules/index.ts`, rendered per tab by the workspace.
 
 ## Non-negotiable
 

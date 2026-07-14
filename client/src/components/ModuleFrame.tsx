@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { MODULE_COMMAND } from '../commands/registry';
 import type { Tab } from '../state/workspace';
 
@@ -52,17 +52,4 @@ export function StateView({
       {action}
     </div>
   );
-}
-
-/**
- * Placeholder-phase helper: briefly simulates a fetch so modules exercise
- * their loading states before real providers exist (Phase 2).
- */
-export function useSimulatedLoad(ms = 350): boolean {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const id = setTimeout(() => setLoading(false), ms);
-    return () => clearTimeout(id);
-  }, [ms]);
-  return loading;
 }

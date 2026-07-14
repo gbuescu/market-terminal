@@ -4,6 +4,39 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 3 — 2026-07-14 — Phase 2: Data layer
+
+**Repo state at start:** Phase 1 shell, commit `62cec8e`.
+
+**Built:**
+- `shared/types.ts` — DTOs + Envelope shared by server and client.
+- Server: `providers/types.ts` (Provider interface + typed `Unsupported`),
+  `providers/demo.ts` (deterministic seeded universe, ~30 symbols, all 5
+  capabilities), `providers/yahoo.ts` (unofficial keyless: search, quotes,
+  series, per-symbol news), `providers/registry.ts` (per-capability priority
+  + settings override; fall-through only on Unsupported), `cache.ts` (SQLite
+  TTL + in-flight dedup + stale-serve), `settings.ts` (whitelisted keys,
+  masking), migration 002 (cache table), data routes with envelope wrapper.
+- Client: `api/client.ts` + `api/useData.ts` (useEnvelope hook),
+  `DataBadge` (SOURCE/time/DEMO/DELAYED/CACHED/STALE), `lib/format.ts`,
+  `config/monitor.ts`; live modules: Monitor (18 symbols, 6 regions, 60s
+  poll), Quote (price panel + session stats, 30s poll), Chart (SVG line
+  chart, 8 ranges), News (per-symbol yahoo / market-wide demo), Calendar
+  (demo), Settings (provider table, per-capability selection, API-key
+  storage); CommandBar symbol search (debounced /api/search → opens Q).
+
+**Verified:** typecheck ✓ lint ✓ build ✓; endpoints: search/quotes/series/
+news live from yahoo (real AAPL/^GSPC/EURUSD=X), market-wide news falls
+through to demo correctly, calendar demo, settings PUT forces demo
+(labeled) and back to auto; browser: monitor grid live, AAPL GP renders
+123-bar 6M chart, SET page complete. Browser-pane screenshots still time
+out (tooling quirk); verification via DOM text/JS.
+
+**Next session:** Phase 3 — core modules (watchlists, notes, alerts center
+with SQLite persistence; quote/chart/news/calendar polish).
+
+---
+
 ## Session 2 — 2026-07-14 — Phase 1: App shell
 
 **Repo state at start:** Phase 0 scaffold, commit `5b80407`.

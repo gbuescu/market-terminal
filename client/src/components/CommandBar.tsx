@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { SymbolInfo } from '../../../shared/types';
+import { getEnvelope } from '../api/client';
 import { type Invocation, parse, suggest } from '../commands/parser';
 import { useWorkspace } from '../state/workspace';
+
+type Item =
+  | { kind: 'recent'; input: string }
+  | { kind: 'command'; inv: Invocation; name: string; desc: string }
+  | { kind: 'symbol'; info: SymbolInfo };
 
 export function CommandBar() {
   const ws = useWorkspace();
@@ -9,40 +16,93 @@ export function CommandBar() {
   const [focused, setFocused] = useState(false);
   const [sel, setSel] = useState(0);
   const [notFound, setNotFound] = useState(false);
+  const [symbols, setSymbols] = useState<SymbolInfo[]>([]);
 
   const suggestions = useMemo(() => suggest(value), [value]);
   const showRecents = value.trim() === '' && ws.recents.length > 0;
-  const open = focused && (suggestions.length > 0 || showRecents);
-  const itemCount = showRecents ? Math.min(ws.recents.length, 8) : suggestions.length;
 
-  const run = useCallback(
+  // Debounced symbol search — only when the input is not already an exact
+  // command (e.g. "AAPL Q" parses; "apple" searches).
+  useEffect(() => {
+    const q = value.trim();
+    if (q.length < 2 || parse(q)) {
+      setSymbols([]);
+      return;
+    }
+    const id = setTimeout(() => {
+      getEnvelope<SymbolInfo[]>(`/api/search?q=${encodeURIComponent(q)}`)
+        .then((env) => setSymbols(env.data.slice(0, 6)))
+        .catch(() => setSymbols([]));
+    }, 300);
+    return () => clearTimeout(id);
+  }, [value]);
+
+  const items = useMemo<Item[]>(() => {
+    if (showRecents) return ws.recents.slice(0, 8).map((input) => ({ kind: 'recent', input }));
+    const cmd: Item[] = suggestions.map((s) => ({
+      kind: 'command',
+      inv: s,
+      name: s.def.name,
+      desc: s.def.description,
+    }));
+    const seen = new Set(suggestions.map((s) => s.symbol).filter(Boolean));
+    const sym: Item[] = symbols
+      .filter((s) => !seen.has(s.symbol))
+      .map((info) => ({ kind: 'symbol', info }));
+    return [...cmd, ...sym];
+  }, [showRecents, ws.recents, suggestions, symbols]);
+
+  const open = focused && items.length > 0;
+
+  const runInvocation = useCallback(
     (inv: Invocation) => {
       ws.execute(inv);
       setValue('');
       setSel(0);
       setNotFound(false);
+      setSymbols([]);
       inputRef.current?.blur();
     },
     [ws],
   );
 
+  const runItem = useCallback(
+    (item: Item) => {
+      if (item.kind === 'recent') {
+        const inv = parse(item.input);
+        if (inv) runInvocation(inv);
+      } else if (item.kind === 'command') {
+        runInvocation(item.inv);
+      } else {
+        const inv = parse(`${item.info.symbol} Q`);
+        if (inv) runInvocation(inv);
+      }
+    },
+    [runInvocation],
+  );
+
   const submit = useCallback(() => {
-    if (showRecents) {
-      const inv = parse(ws.recents[sel] ?? '');
-      if (inv) run(inv);
+    const item = items[sel] ?? items[0];
+    if (item) {
+      runItem(item);
       return;
     }
     const exact = parse(value);
-    const chosen = suggestions[sel] ?? suggestions[0];
-    // A selected suggestion wins; otherwise fall back to strict parse.
-    if (chosen) run(chosen);
-    else if (exact) run(exact);
+    if (exact) runInvocation(exact);
     else setNotFound(true);
-  }, [showRecents, ws.recents, sel, value, suggestions, run]);
+  }, [items, sel, value, runItem, runInvocation]);
+
+  const complete = useCallback((item: Item | undefined) => {
+    if (!item) return;
+    if (item.kind === 'recent') setValue(item.input);
+    else if (item.kind === 'command') setValue(item.inv.canonical);
+    else setValue(`${item.info.symbol} `);
+    setSel(0);
+  }, []);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
-      setSel((s) => Math.min(s + 1, itemCount - 1));
+      setSel((s) => Math.min(s + 1, items.length - 1));
       e.preventDefault();
     } else if (e.key === 'ArrowUp') {
       setSel((s) => Math.max(s - 1, 0));
@@ -50,9 +110,8 @@ export function CommandBar() {
     } else if (e.key === 'Enter') {
       submit();
       e.preventDefault();
-    } else if (e.key === 'Tab' && !showRecents && suggestions[sel]) {
-      setValue(suggestions[sel].canonical);
-      setSel(0);
+    } else if (e.key === 'Tab') {
+      complete(items[sel]);
       e.preventDefault();
     } else if (e.key === 'Escape') {
       inputRef.current?.blur();
@@ -83,6 +142,60 @@ export function CommandBar() {
     return () => window.removeEventListener('keydown', onWindowKey);
   }, []);
 
+  let runningIndex = -1;
+  const renderItem = (item: Item) => {
+    runningIndex++;
+    const i = runningIndex;
+    const cls = `cmd-item${i === sel ? ' cmd-item-sel' : ''}`;
+    if (item.kind === 'recent') {
+      return (
+        <button
+          type="button"
+          key={`r-${item.input}`}
+          className={cls}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => runItem(item)}
+        >
+          <span className="cmd-item-mnemonic">{item.input}</span>
+        </button>
+      );
+    }
+    if (item.kind === 'command') {
+      return (
+        <button
+          type="button"
+          key={`c-${item.inv.canonical}`}
+          className={cls}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => runItem(item)}
+        >
+          <span className="cmd-item-mnemonic">{item.inv.canonical}</span>
+          <span className="cmd-item-name">{item.name}</span>
+          <span className="cmd-item-desc">{item.desc}</span>
+        </button>
+      );
+    }
+    return (
+      <button
+        type="button"
+        key={`s-${item.info.symbol}`}
+        className={cls}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => runItem(item)}
+      >
+        <span className="cmd-item-mnemonic">{item.info.symbol}</span>
+        <span className="cmd-item-name">{item.info.name}</span>
+        <span className="cmd-item-desc">
+          {item.info.assetClass}
+          {item.info.exchange ? ` · ${item.info.exchange}` : ''} → opens quote
+        </span>
+      </button>
+    );
+  };
+
+  const commandItems = items.filter((i) => i.kind !== 'symbol');
+  const symbolItems = items.filter((i) => i.kind === 'symbol');
+
   return (
     <div className="cmdwrap">
       <span className="cmd-prompt">&gt;</span>
@@ -90,7 +203,7 @@ export function CommandBar() {
         ref={inputRef}
         className={`cmd-input${notFound ? ' cmd-error' : ''}`}
         value={value}
-        placeholder='Type a command — e.g. "AAPL Q", "news", HELP'
+        placeholder='Type a command or search — "AAPL Q", "apple", HELP'
         spellCheck={false}
         autoComplete="off"
         onChange={(e) => {
@@ -107,34 +220,9 @@ export function CommandBar() {
       {open && (
         <div className="cmd-dropdown">
           {showRecents && <div className="cmd-section">RECENT</div>}
-          {showRecents
-            ? ws.recents.slice(0, 8).map((r, i) => (
-                <button
-                  type="button"
-                  key={r}
-                  className={`cmd-item${i === sel ? ' cmd-item-sel' : ''}`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    const inv = parse(r);
-                    if (inv) run(inv);
-                  }}
-                >
-                  <span className="cmd-item-mnemonic">{r}</span>
-                </button>
-              ))
-            : suggestions.map((s, i) => (
-                <button
-                  type="button"
-                  key={s.canonical}
-                  className={`cmd-item${i === sel ? ' cmd-item-sel' : ''}`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => run(s)}
-                >
-                  <span className="cmd-item-mnemonic">{s.canonical}</span>
-                  <span className="cmd-item-name">{s.def.name}</span>
-                  <span className="cmd-item-desc">{s.def.description}</span>
-                </button>
-              ))}
+          {commandItems.map(renderItem)}
+          {symbolItems.length > 0 && <div className="cmd-section">SYMBOLS</div>}
+          {symbolItems.map(renderItem)}
           <div className="cmd-hint">↑↓ select · Enter run · Tab complete · Esc close</div>
         </div>
       )}

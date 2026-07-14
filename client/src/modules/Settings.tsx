@@ -1,96 +1,243 @@
+import { useCallback, useEffect, useState } from 'react';
+import type { SettingsPayload } from '../../../shared/types';
+import { getJson, putJson } from '../api/client';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { useHealth } from '../state/health';
 import type { Tab } from '../state/workspace';
 
-/** Candidate providers — mirrors docs/DATA_PROVIDERS.md; wiring is Phase 2. */
-const PROVIDERS = [
-  { name: 'Demo / seed data', data: 'Everything (clearly labeled)', key: 'none' },
-  { name: 'Stooq', data: 'EOD prices, indices, FX', key: 'none' },
-  { name: 'Yahoo Finance (unofficial)', data: 'Quotes, charts, fundamentals', key: 'none' },
-  { name: 'Alpha Vantage', data: 'Quotes, series, FX', key: 'required' },
-  { name: 'Finnhub', data: 'Quotes, news, calendar', key: 'required' },
-  { name: 'FRED', data: 'US macro series', key: 'required (free)' },
-  { name: 'CoinGecko', data: 'Crypto', key: 'none' },
+const CAPABILITIES = ['search', 'quotes', 'series', 'news', 'calendar'] as const;
+
+const KEY_FIELDS: { setting: string; label: string; hint: string }[] = [
+  { setting: 'key.finnhub', label: 'Finnhub', hint: 'adapter planned — key stored for later' },
+  { setting: 'key.alphavantage', label: 'Alpha Vantage', hint: 'adapter planned' },
+  { setting: 'key.fred', label: 'FRED', hint: 'adapter planned (economics)' },
 ];
 
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; payload: SettingsPayload };
+
 export function Settings({ tab }: { tab: Tab }) {
-  const { state, refresh } = useHealth();
+  const { state: health, refresh: refreshHealth } = useHealth();
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [keyDrafts, setKeyDrafts] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState('');
+
+  const reload = useCallback(() => {
+    getJson<SettingsPayload>('/api/settings')
+      .then((payload) => setLoad({ status: 'ready', payload }))
+      .catch((err: unknown) =>
+        setLoad({
+          status: 'error',
+          message: err instanceof Error ? err.message : 'request failed',
+        }),
+      );
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  const save = useCallback(
+    (patch: Record<string, string>, message: string) => {
+      putJson('/api/settings', patch)
+        .then(() => {
+          setNotice(message);
+          reload();
+        })
+        .catch(() => setNotice('save failed — is the API up?'));
+    },
+    [reload],
+  );
 
   return (
     <ModuleFrame
       tab={tab}
       toolbar={
-        <button type="button" className="btn" onClick={refresh}>
-          REFRESH
-        </button>
+        <>
+          {notice && <span className="dim small">{notice}</span>}
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              refreshHealth();
+              reload();
+            }}
+          >
+            REFRESH
+          </button>
+        </>
       }
     >
       <div className="settings-grid">
         <div className="panel">
           <div className="panel-title">LOCAL API</div>
-          {state.status === 'loading' && <StateView kind="loading" title="Checking API…" />}
-          {state.status === 'down' && (
+          {health.status === 'loading' && <StateView kind="loading" title="Checking API…" />}
+          {health.status === 'down' && (
             <StateView
               kind="error"
               title="API unreachable"
-              detail={state.error}
+              detail={health.error}
               hint="Start it with .\run.ps1 (or npm run dev:server), then REFRESH."
             />
           )}
-          {state.status === 'up' && (
+          {health.status === 'up' && (
             <table className="kv">
               <tbody>
                 <tr>
                   <td>app</td>
                   <td>
-                    {state.health.app} v{state.health.version}
+                    {health.health.app} v{health.health.version}
                   </td>
                 </tr>
                 <tr>
                   <td>node</td>
-                  <td>{state.health.node}</td>
+                  <td>{health.health.node}</td>
                 </tr>
                 <tr>
                   <td>db schema</td>
-                  <td>v{state.health.schemaVersion} (data\terminal.db)</td>
-                </tr>
-                <tr>
-                  <td>server time</td>
-                  <td>{state.health.time}</td>
+                  <td>v{health.health.schemaVersion} (data\terminal.db)</td>
                 </tr>
               </tbody>
             </table>
           )}
         </div>
 
-        <div className="panel">
-          <div className="panel-title">DATA PROVIDERS</div>
-          <table className="grid-table">
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th>Data</th>
-                <th>API key</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PROVIDERS.map((p) => (
-                <tr key={p.name}>
-                  <td>{p.name}</td>
-                  <td>{p.data}</td>
-                  <td>{p.key}</td>
-                  <td className="dim">NOT CONFIGURED — Phase 2</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="dim small">
-            Key entry and provider selection activate with the Phase 2 data layer. The terminal
-            stays fully usable without keys via clearly-labeled demo data. No source is, or claims
-            to be, official Bloomberg data.
-          </p>
-        </div>
+        {load.status === 'loading' && (
+          <div className="panel">
+            <StateView kind="loading" title="Loading settings…" />
+          </div>
+        )}
+        {load.status === 'error' && (
+          <div className="panel">
+            <StateView kind="error" title="Settings unavailable" detail={load.message} />
+          </div>
+        )}
+        {load.status === 'ready' && (
+          <>
+            <div className="panel">
+              <div className="panel-title">DATA PROVIDERS</div>
+              <table className="grid-table">
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Kind</th>
+                    <th>Capabilities</th>
+                    <th>Delay</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {load.payload.providers.map((p) => (
+                    <tr key={p.id}>
+                      <td title={p.note}>{p.name}</td>
+                      <td className={p.kind === 'demo' ? 'accent' : ''}>{p.kind.toUpperCase()}</td>
+                      <td className="dim">{p.capabilities.join(' ')}</td>
+                      <td className="num">
+                        {p.delaySeconds === 0 ? '~rt' : `≤${Math.round(p.delaySeconds / 60)}m`}
+                      </td>
+                      <td className={p.ready ? 'pos' : 'dim'}>{p.ready ? 'READY' : 'NO KEY'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="dim small">
+                Sources and their limitations are documented in docs/DATA_PROVIDERS.md. No source
+                is, or claims to be, official Bloomberg data. Demo data is synthetic and clearly
+                labeled wherever it renders.
+              </p>
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">PROVIDER SELECTION</div>
+              <table className="kv">
+                <tbody>
+                  {CAPABILITIES.map((cap) => {
+                    const current = load.payload.settings[`provider.${cap}`] ?? 'auto';
+                    const options = load.payload.providers.filter((p) =>
+                      p.capabilities.includes(cap),
+                    );
+                    return (
+                      <tr key={cap}>
+                        <td>{cap}</td>
+                        <td>
+                          <select
+                            className="select"
+                            value={current}
+                            aria-label={`Provider for ${cap}`}
+                            onChange={(e) =>
+                              save({ [`provider.${cap}`]: e.target.value }, `${cap} provider saved`)
+                            }
+                          >
+                            <option value="auto">auto (prefer live)</option>
+                            {options.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.id}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="dim small">
+                "auto" prefers live sources and never silently falls back to demo — failures show as
+                errors with the option to switch here.
+              </p>
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">API KEYS</div>
+              <table className="kv">
+                <tbody>
+                  {KEY_FIELDS.map((f) => {
+                    const saved = load.payload.settings[f.setting];
+                    return (
+                      <tr key={f.setting}>
+                        <td>
+                          {f.label}
+                          <div className="dim small">{f.hint}</div>
+                        </td>
+                        <td>
+                          <input
+                            className="text-input"
+                            type="password"
+                            placeholder={saved ? `saved ${saved}` : 'not set'}
+                            value={keyDrafts[f.setting] ?? ''}
+                            aria-label={`${f.label} API key`}
+                            onChange={(e) =>
+                              setKeyDrafts((d) => ({ ...d, [f.setting]: e.target.value }))
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => {
+                              save(
+                                { [f.setting]: keyDrafts[f.setting] ?? '' },
+                                `${f.label} key saved`,
+                              );
+                              setKeyDrafts((d) => ({ ...d, [f.setting]: '' }));
+                            }}
+                          >
+                            SAVE
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="dim small">
+                Keys are stored locally in data\terminal.db and never leave this machine except in
+                requests to the provider itself. Save an empty value to delete a key.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </ModuleFrame>
   );

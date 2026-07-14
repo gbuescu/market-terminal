@@ -7,11 +7,25 @@ never imply anything is official Bloomberg data; keep all provider logic in
 
 ## Status
 
-Phase 2 not started. No providers integrated yet. The scaffold has no
-external data access. This table is the candidate list to evaluate when
-Phase 2 begins.
+Phase 2 shipped two providers behind the adapter boundary
+(`server/providers/`):
 
-## Candidates (to evaluate in Phase 2)
+| Provider | Capabilities | Key | Latency label | Notes |
+|---|---|---|---|---|
+| `demo` | search, quotes, series, news, calendar | none | synthetic (~rt) | Deterministic seeded walk; **every payload flagged `demo: true`** and badged "DEMO DATA" in the UI |
+| `yahoo` | search, quotes, series, news (per-symbol only) | none | labeled DELAYED (≤15 min, exchange-dependent) | **Unofficial** endpoints (`query1.finance.yahoo.com` v8 chart / v1 search). Undocumented; may break or rate-limit at any time. Browser-like User-Agent required. |
+
+Selection: per-capability priority (yahoo → demo; calendar demo-only), user
+override via `provider.<capability>` setting ('auto' or provider id; a forced
+provider is exclusive). Fall-through between providers happens only on
+`Unsupported` (capability shape), never on network failure — live failures
+surface as errors/stale cache instead of silently becoming demo data.
+
+Caching (server/cache.ts): search 24h · quotes 30s · series 15m (1D: 5m) ·
+news 5m · calendar 6h; stale entries are served with `stale: true` when a
+refresh fails.
+
+## Candidates (future phases)
 
 | Source | Data | Cost | Key needed | Latency | Notes |
 |---|---|---|---|---|---|
@@ -27,4 +41,13 @@ Phase 2 begins.
 
 ## Decisions log
 
-- 2026-07-14: none yet — table above is candidates only, no commitments.
+- 2026-07-14 (Phase 2): shipped `demo` + `yahoo` adapters. Yahoo chosen as
+  the first live source because it is keyless (zero-setup live data), covers
+  4 of 5 capabilities, and uses familiar symbol conventions (AAPL, ^GSPC,
+  EURUSD=X, GC=F). Risk accepted: unofficial API. Mitigations: stale-serve
+  cache, demo fallback selectable in SET, honest DELAYED labeling.
+- 2026-07-14: calendar stays demo-only until a proper economics source
+  (FRED key slot already exists) lands in Phase 4.
+- 2026-07-14: API keys stored plaintext in local SQLite (`data\terminal.db`,
+  gitignored) — acceptable for a single-user local app; revisit if that
+  assumption changes.
