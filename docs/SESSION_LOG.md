@@ -6,8 +6,7 @@ Append one entry per Claude Code session. Newest at the top.
 
 ## Session 5 — 2026-07-14 — Phase 4: Analytics modules
 
-**Repo state at start:** Phase 3 core modules, commit `9c2f01f` (approx —
-see git log).
+**Repo state at start:** Phase 3 core modules, commit `3f32548`.
 
 **Provider decision (was flagged):** fundamentals/statements NOT scraped
 from Yahoo (crumb-gated). Shipped key-gated `finnhub` (quotes+fundamentals)
