@@ -13,8 +13,19 @@ import {
   useRef,
   useState,
 } from 'react';
+import { getJson, putJson } from '../api/client';
 import { type Invocation, parse } from '../commands/parser';
 import { MODULE_COMMAND, type ModuleId } from '../commands/registry';
+
+interface PersistedTab {
+  moduleId: ModuleId;
+  symbol?: string;
+  title: string;
+}
+interface Layout {
+  tabs: PersistedTab[];
+  activeIndex: number;
+}
 
 export interface Tab {
   id: string;
@@ -67,6 +78,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [recents, setRecents] = useState<string[]>([]);
   const activeTab = tabs.find((t) => t.id === activeId) ?? null;
   const suppressHashEvent = useRef(false);
+  const hydrated = useRef(false);
 
   const openInvocation = useCallback((inv: Invocation, fromHistory = false) => {
     setTabs((prev) => {
@@ -135,10 +147,51 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (activeId) closeTab(activeId);
   }, [activeId, closeTab]);
 
-  // Startup: restore from the URL hash, else open the markets monitor.
+  // Startup: restore the saved layout; else the URL hash; else the monitor.
   useEffect(() => {
-    const inv = invocationFromHash(window.location.hash) ?? parse('MON');
-    if (inv) openInvocation(inv, true);
+    let cancelled = false;
+    (async () => {
+      let restored = false;
+      try {
+        const layout = await getJson<Layout>('/api/workspace');
+        if (!cancelled && Array.isArray(layout.tabs) && layout.tabs.length > 0) {
+          const restoredTabs: Tab[] = layout.tabs
+            .filter((t) => MODULE_COMMAND[t.moduleId])
+            .map((t) => ({
+              id: crypto.randomUUID(),
+              moduleId: t.moduleId,
+              symbol: t.symbol,
+              title: t.title,
+            }));
+          if (restoredTabs.length > 0) {
+            setTabs(restoredTabs);
+            // Prefer a specific deep-link in the hash; else the saved active tab.
+            const hashInv = invocationFromHash(window.location.hash);
+            const hashIdx = hashInv
+              ? restoredTabs.findIndex(
+                  (t) =>
+                    t.moduleId === hashInv.def.moduleId &&
+                    (t.symbol ?? '') === (hashInv.symbol ?? ''),
+                )
+              : -1;
+            const idx =
+              hashIdx >= 0
+                ? hashIdx
+                : Math.min(Math.max(layout.activeIndex, 0), restoredTabs.length - 1);
+            setActiveId(restoredTabs[idx].id);
+            restored = true;
+          }
+        }
+      } catch {
+        /* no saved layout or API down */
+      }
+      if (!cancelled && !restored) {
+        const inv = invocationFromHash(window.location.hash) ?? parse('MON');
+        if (inv) openInvocation(inv, true);
+      }
+      hydrated.current = true;
+    })();
+
     fetch('/api/commands/recent')
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: { input: string }[]) => {
@@ -146,7 +199,29 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           setRecents((prev) => (prev.length ? prev : rows.map((r) => r.input)));
       })
       .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, [openInvocation]);
+
+  // Persist layout (debounced) after hydration, so restarts reopen your tabs.
+  useEffect(() => {
+    if (!hydrated.current) return;
+    const payload: Layout = {
+      tabs: tabs.map((t) => ({ moduleId: t.moduleId, symbol: t.symbol, title: t.title })),
+      activeIndex: Math.max(
+        0,
+        tabs.findIndex((t) => t.id === activeId),
+      ),
+    };
+    const id = setTimeout(() => {
+      putJson('/api/workspace', payload).catch(() => {
+        /* best-effort */
+      });
+    }, 400);
+    return () => clearTimeout(id);
+  }, [tabs, activeId]);
 
   // Active tab -> URL hash + document title.
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { parse } from './commands/parser';
 import { CommandBar } from './components/CommandBar';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { StateView } from './components/ModuleFrame';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
@@ -52,7 +53,9 @@ function Workspace() {
       <TabStrip />
       <div className="workspace-body">
         {active && ActiveModule ? (
-          <ActiveModule key={active.id} tab={active} />
+          <ErrorBoundary resetKey={active.id}>
+            <ActiveModule key={active.id} tab={active} />
+          </ErrorBoundary>
         ) : (
           <StateView
             kind="empty"

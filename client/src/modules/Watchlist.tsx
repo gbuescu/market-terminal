@@ -4,6 +4,7 @@ import { deleteJson, getJson, postJson } from '../api/client';
 import { useEnvelope } from '../api/useData';
 import { parse } from '../commands/parser';
 import { DataBadge } from '../components/DataBadge';
+import { ExportButton } from '../components/ExportButton';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { fmtChange, fmtPct, fmtPrice, signClass } from '../lib/format';
 import { type Tab, useWorkspace } from '../state/workspace';
@@ -78,6 +79,23 @@ export function Watchlist({ tab }: { tab: Tab }) {
         <>
           {notice && <span className="neg small">{notice}</span>}
           {quotesState.status === 'ready' && <DataBadge env={quotesState.env} />}
+          <ExportButton
+            name={selected ? `watchlist-${selected.name}` : 'watchlist'}
+            headers={['Symbol', 'Name', 'Last', 'Change', 'ChangePct']}
+            disabled={!selected || selected.items.length === 0}
+            rows={() =>
+              (selected?.items ?? []).map((item) => {
+                const q = quoteBySymbol.get(item.symbol);
+                return [
+                  item.symbol,
+                  q?.name ?? item.name ?? '',
+                  q?.price ?? '',
+                  q?.change ?? '',
+                  q?.changePct ?? '',
+                ];
+              })
+            }
+          />
           <button
             type="button"
             className="btn"

@@ -6,7 +6,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import { startAlertEngine } from './alerts.ts';
 import { runMigrations } from './db.ts';
 import { domain } from './domain.ts';
@@ -21,6 +21,19 @@ const app = express();
 app.use(express.json());
 app.use('/api', api);
 app.use('/api', domain);
+
+// Unknown API routes get a JSON 404 (not the SPA HTML fallback).
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'unknown API route' });
+});
+
+// Central error handler: never leak an HTML stack trace to an API caller.
+app.use('/api', (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[market-terminal] unhandled API error:', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'internal server error' });
+  }
+});
 
 startAlertEngine();
 

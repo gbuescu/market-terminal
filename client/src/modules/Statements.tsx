@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Statements as StatementsDto, StatementType } from '../../../shared/types';
 import { useEnvelope } from '../api/useData';
 import { DataBadge } from '../components/DataBadge';
+import { ExportButton } from '../components/ExportButton';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { fmtLarge } from '../lib/format';
 import type { Tab } from '../state/workspace';
@@ -40,6 +41,17 @@ export function Statements({ tab }: { tab: Tab }) {
       toolbar={
         <>
           {state.status === 'ready' && <DataBadge env={state.env} />}
+          <ExportButton
+            name={`statements-${symbol ?? 'x'}-${type}`}
+            headers={['LineItem', ...(s?.periods.map((p) => p.period) ?? [])]}
+            disabled={!s}
+            rows={() =>
+              (s?.lineItems ?? []).map((item) => [
+                item,
+                ...(s?.periods ?? []).map((p) => p.values[item] ?? ''),
+              ])
+            }
+          />
           <span className="chart-ranges">
             {TYPES.map((t) => (
               <button

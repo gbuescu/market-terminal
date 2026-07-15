@@ -24,6 +24,18 @@ function Wait-ForPort([int]$Port, [string]$Label, [int]$TimeoutSec = 60) {
     return $false
 }
 
+function Wait-ForHealth([int]$Port, [int]$TimeoutSec = 30) {
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $r = Invoke-WebRequest -Uri "http://localhost:$Port/api/health" -UseBasicParsing -TimeoutSec 3
+            if ($r.StatusCode -eq 200) { return $true }
+        } catch { Start-Sleep -Milliseconds 500 }
+    }
+    Write-Warning "API on :$Port did not pass its health check. Check .run\server.log."
+    return $false
+}
+
 if (-not (Test-Path 'node_modules')) {
     Write-Host 'node_modules missing — running setup.ps1 first...' -ForegroundColor Yellow
     & .\setup.ps1
@@ -43,6 +55,8 @@ if (Test-PortListening $apiPort) {
         -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru
     $p.Id | Out-File .run\server.pid -Encoding ascii
     if (-not (Wait-ForPort $apiPort 'API server')) { exit 1 }
+    if (-not (Wait-ForHealth $apiPort)) { exit 1 }
+    Write-Host 'API health check passed.' -ForegroundColor Green
 }
 
 if ($Prod) {

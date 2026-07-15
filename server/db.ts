@@ -75,6 +75,13 @@ const migrations: string[] = [
      triggered_at TEXT,
      triggered_price REAL
    );`,
+  // 004 — generic UI state (workspace layout, etc). Purpose-built key/value
+  // with no size cap, separate from the whitelisted+masked settings table.
+  `CREATE TABLE ui_state (
+     key TEXT PRIMARY KEY,
+     value TEXT NOT NULL,
+     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+   );`,
 ];
 
 export function getMeta(key: string): string | null {

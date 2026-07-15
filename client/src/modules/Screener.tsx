@@ -3,6 +3,7 @@ import type { Fundamentals } from '../../../shared/types';
 import { useEnvelope } from '../api/useData';
 import { parse } from '../commands/parser';
 import { DataBadge } from '../components/DataBadge';
+import { ExportButton } from '../components/ExportButton';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { fmtLarge, fmtNum, fmtPct } from '../lib/format';
 import { type Tab, useWorkspace } from '../state/workspace';
@@ -61,6 +62,22 @@ export function Screener({ tab }: { tab: Tab }) {
       toolbar={
         <>
           {state.status === 'ready' && <DataBadge env={state.env} />}
+          <ExportButton
+            name="screener"
+            headers={['Symbol', 'Name', 'Sector', 'MarketCap', 'PE_TTM', 'DivYield', 'Chg52W']}
+            disabled={rows.length === 0}
+            rows={() =>
+              rows.map((f) => [
+                f.symbol,
+                f.name ?? '',
+                f.sector ?? f.industry ?? '',
+                f.marketCap ?? '',
+                f.peTTM ?? '',
+                f.dividendYield ?? '',
+                f.week52ChangePct ?? '',
+              ])
+            }
+          />
           <button type="button" className="btn" onClick={refresh}>
             REFRESH
           </button>

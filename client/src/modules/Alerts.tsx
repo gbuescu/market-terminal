@@ -3,6 +3,11 @@ import type { Alert, AlertCondition } from '../../../shared/types';
 import { deleteJson, getJson, postJson } from '../api/client';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { fmtDateTime, fmtPrice } from '../lib/format';
+import {
+  type NotifyPermission,
+  notificationPermission,
+  requestNotificationPermission,
+} from '../lib/notify';
 import type { Tab } from '../state/workspace';
 
 type ListState =
@@ -17,6 +22,7 @@ export function Alerts({ tab }: { tab: Tab }) {
   const [level, setLevel] = useState('');
   const [note, setNote] = useState('');
   const [notice, setNotice] = useState('');
+  const [perm, setPerm] = useState<NotifyPermission>(() => notificationPermission());
 
   const reload = useCallback(() => {
     getJson<Alert[]>('/api/alerts')
@@ -64,6 +70,19 @@ export function Alerts({ tab }: { tab: Tab }) {
       toolbar={
         <>
           {notice && <span className="dim small">{notice}</span>}
+          {perm !== 'unsupported' &&
+            (perm === 'granted' ? (
+              <span className="dim small">🔔 notifications on</span>
+            ) : (
+              <button
+                type="button"
+                className="btn"
+                title="Get a desktop notification when an alert triggers"
+                onClick={() => requestNotificationPermission().then(setPerm)}
+              >
+                ENABLE NOTIFICATIONS
+              </button>
+            ))}
           <button type="button" className="btn" onClick={reload}>
             REFRESH
           </button>

@@ -1,6 +1,7 @@
 import type { EcoEvent } from '../../../shared/types';
 import { useEnvelope } from '../api/useData';
 import { DataBadge } from '../components/DataBadge';
+import { ExportButton } from '../components/ExportButton';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import type { Tab } from '../state/workspace';
 
@@ -25,6 +26,21 @@ export function Calendar({ tab }: { tab: Tab }) {
       toolbar={
         <>
           {state.status === 'ready' && <DataBadge env={state.env} />}
+          <ExportButton
+            name="calendar"
+            headers={['Time', 'Region', 'Event', 'Importance', 'Forecast', 'Previous']}
+            disabled={state.status !== 'ready'}
+            rows={() =>
+              (state.status === 'ready' ? state.env.data : []).map((e) => [
+                e.time,
+                e.region,
+                e.event,
+                e.importance,
+                e.forecast ?? '',
+                e.previous ?? '',
+              ])
+            }
+          />
           <button type="button" className="btn" onClick={refresh}>
             REFRESH
           </button>

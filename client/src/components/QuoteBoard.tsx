@@ -4,6 +4,7 @@ import { parse } from '../commands/parser';
 import { fmtChange, fmtPct, fmtPrice, signClass } from '../lib/format';
 import { type Tab, useWorkspace } from '../state/workspace';
 import { DataBadge } from './DataBadge';
+import { ExportButton } from './ExportButton';
 import { ModuleFrame, StateView } from './ModuleFrame';
 
 export interface BoardRow {
@@ -39,6 +40,30 @@ export function QuoteBoard({ tab, sections }: { tab: Tab; sections: BoardSection
       toolbar={
         <>
           {state.status === 'ready' && <DataBadge env={state.env} />}
+          <ExportButton
+            name={tab.moduleId}
+            headers={['Section', 'Symbol', 'Name', 'Last', 'Change', 'ChangePct']}
+            disabled={state.status !== 'ready'}
+            rows={() => {
+              const bySymbol =
+                state.status === 'ready'
+                  ? new Map(state.env.data.map((q) => [q.symbol, q]))
+                  : new Map<string, Quote>();
+              return sections.flatMap((section) =>
+                section.rows.map((row) => {
+                  const q = bySymbol.get(row.symbol);
+                  return [
+                    section.label,
+                    row.symbol,
+                    row.name,
+                    q?.price ?? '',
+                    q?.change ?? '',
+                    q?.changePct ?? '',
+                  ];
+                }),
+              );
+            }}
+          />
           <button type="button" className="btn" onClick={refresh}>
             REFRESH
           </button>

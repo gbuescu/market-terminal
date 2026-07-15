@@ -4,6 +4,39 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 7 — 2026-07-15 — Phase 6: Polish (final phase)
+
+**Repo state at start:** Phase 5 learning, commit `8b59355`.
+
+**Built:**
+- Layout persistence: migration 004 `ui_state` table; GET/PUT
+  `/api/workspace` in domain.ts; `state/workspace.tsx` loads saved layout on
+  boot (falls back to hash → MON) and saves open tabs + active index
+  debounced (400ms). Hash deep-link still picks the active tab on restore.
+- Notifications: `lib/notify.ts` (Notification API wrapper); StatusBar tracks
+  triggered alert ids and notifies only on newly-crossed ones (seeds silently
+  on first poll); opt-in ENABLE NOTIFICATIONS button in ALRT.
+- CSV export: `lib/csv.ts` (RFC-ish quoting, downloadCsv, fileStamp) +
+  `components/ExportButton.tsx`; wired into screener, watchlist, statements,
+  calendar, and the FX/RATES/CMDTY QuoteBoard (lazy rows() → reflects
+  current filter/sort).
+- Error handling: `components/ErrorBoundary.tsx` wraps the active module
+  (resetKey = tab id); server JSON 404 + central /api error middleware.
+- run.ps1: added Wait-ForHealth (polls /api/health for 200 before opening
+  the browser). README fully rewritten (command table, shortcuts, data
+  honesty, persistence, troubleshooting, screenshots guidance).
+
+**Verified:** typecheck ✓ lint ✓ build ✓; live: schema=4, JSON 404 returns
+404, opened 4 tabs → persisted to /api/workspace → full page reload restored
+all 4 with correct active tab; CSV intercept produced correct header + 28
+rows; ENABLE NOTIFICATIONS renders in ALRT. Reset workspace layout to empty
+afterwards for a clean first launch.
+
+**Status:** all six build phases complete. Enhancement backlog (not phase
+scope) noted in ROADMAP.
+
+---
+
 ## Session 6 — 2026-07-15 — Phase 5: Learning workflow
 
 **Repo state at start:** Phase 4 analytics, commit `191ed6f` (+docs fix).

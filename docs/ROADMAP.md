@@ -79,8 +79,24 @@ shared blocker. Tick items as they land; note the session date.
 - [x] Mnemonic training: trainer quiz graded by the real parser (aliases
       count), streak + persisted best streak
 
-## Phase 6 — Polish (CURRENT)
+## Phase 6 — Polish ✅ (2026-07-15)
 
-- [ ] Layout persistence · notifications · CSV export
-- [ ] Better error handling, demos, screenshots
-- [ ] README hardening · launch reliability improvements
+- [x] Layout persistence: open tabs + active tab saved to ui_state
+      (migration 004) via GET/PUT /api/workspace, restored on boot
+      (hash deep-link still wins for active tab)
+- [x] Notifications: browser Notification API; StatusBar fires on newly
+      triggered alerts (seeded silently on first poll); opt-in button in ALRT
+- [x] CSV export: shared toCsv/downloadCsv + ExportButton on screener,
+      watchlist, statements, calendar, and FX/RATES/CMDTY boards
+- [x] Better error handling: per-module React ErrorBoundary; server JSON 404
+      + central error middleware for /api (no HTML leak to API callers)
+- [x] Screenshots: documented capture guidance in README (dark dense UI;
+      binary shots are a manual step)
+- [x] README hardening: full command table, shortcuts, data-honesty,
+      persistence, troubleshooting, reset instructions
+- [x] Launch reliability: run.ps1 now waits for an actual /api/health 200
+      before opening the browser
+
+**All six build phases complete.** Future work is enhancement, not phase
+scope: real economic-calendar provider (FRED key slot exists), intraday
+chart crosshair/tooltip, drag-reorder tabs, more screener metrics.

@@ -56,6 +56,32 @@ if you change one, record the rationale and date.
 - `client/src/modules/` — one file per terminal module, registered in
   `modules/index.ts`, rendered per tab by the workspace.
 
+## Persistence & UI state (Phase 3–6)
+
+- Domain objects (watchlists, notes, alerts) live in tables from migration
+  003; CRUD in `server/domain.ts` returns plain JSON (not envelopes — this
+  is local user data, not market data).
+- **Two key/value stores, kept separate on purpose**: `settings` (migration
+  001) is a whitelist with `key.*` masking, for user config + `learn.*`
+  flags; `ui_state` (migration 004) is uncapped generic UI state — currently
+  the workspace `layout` (open tabs + active index), saved debounced from
+  `state/workspace.tsx`, restored on boot (a hash deep-link still chooses the
+  active tab). Never route large blobs through `settings` (200-char cap).
+- **Alert engine** (`server/alerts.ts`): 60s interval, prices active alerts
+  through the provider registry, marks them triggered. Notify-only — no
+  order/trade shape exists anywhere. Client desktop notifications
+  (`lib/notify.ts`) fire from StatusBar on newly-triggered ids.
+
+## Resilience (Phase 6)
+
+- Every module renders inside a per-tab `ErrorBoundary` (reset on active-tab
+  change): one crashing panel shows a RETRY card, the shell survives.
+- `/api` has a JSON 404 and a central error handler in `server/index.ts` —
+  API callers never receive the SPA HTML or a stack trace.
+- CSV export is a shared `lib/csv.ts` + `components/ExportButton.tsx`; add it
+  to a module's toolbar with a lazy `rows()` so exports reflect current
+  filter/sort state.
+
 ## Non-negotiable
 
 No trading capability of any kind, ever. See CLAUDE.md "Non-negotiable

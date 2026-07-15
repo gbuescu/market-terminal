@@ -283,3 +283,35 @@ domain.post('/alerts/evaluate', async (_req, res) => {
   const result = await evaluateAlerts();
   res.json(result);
 });
+
+// ---------- workspace layout (UI state) ----------
+
+domain.get('/workspace', (_req, res) => {
+  const row = db.prepare("SELECT value FROM ui_state WHERE key = 'layout'").get() as
+    | { value: string }
+    | undefined;
+  if (!row) {
+    res.json({ tabs: [], activeIndex: 0 });
+    return;
+  }
+  try {
+    res.json(JSON.parse(row.value));
+  } catch {
+    res.json({ tabs: [], activeIndex: 0 });
+  }
+});
+
+domain.put('/workspace', (req, res) => {
+  const body = req.body;
+  if (typeof body !== 'object' || body === null || !Array.isArray(body.tabs)) {
+    res.status(400).json({ error: 'expected { tabs: [], activeIndex }' });
+    return;
+  }
+  // Cap what we persist; layout is convenience state, not a document.
+  const value = JSON.stringify(body).slice(0, 20_000);
+  db.prepare(
+    `INSERT INTO ui_state (key, value, updated_at) VALUES ('layout', ?, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+  ).run(value);
+  res.json({ ok: true });
+});
