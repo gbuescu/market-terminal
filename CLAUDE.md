@@ -64,6 +64,16 @@ npm run lint:fix           # biome check --write .
 Health check: `Invoke-WebRequest http://localhost:4780/api/health -UseBasicParsing`
 Dev-server logs land in `.run\server.log` and `.run\client.log`.
 
+**Windows execution policy:** many machines default to `Restricted`, which
+blocks `.ps1` files ("running scripts is disabled on this system"). Use the
+`.cmd` wrappers (`run.cmd` / `setup.cmd` / `stop.cmd`) — they invoke the
+matching `.ps1` under `-ExecutionPolicy Bypass` and are not policy-blocked.
+Keep the `.ps1` scripts **ASCII-only and free of backtick line-continuations**:
+Windows PowerShell 5.1 choked on a backtick-continued `Start-Process` line
+(fixed 2026-07-15 by assigning the command to a variable and using a
+single-line call). Parse-check a script with
+`[System.Management.Automation.Language.Parser]::ParseFile(path,[ref]$t,[ref]$e)`.
+
 ## Non-negotiable product constraints
 
 1. **NEVER add trading.** No trade execution, order routing, broker/exchange

@@ -19,6 +19,19 @@ browser app, driven from a keyboard-first command bar.
 .\stop.ps1         # stop everything (by port)
 ```
 
+**If PowerShell says "running scripts is disabled on this system"**, use the
+`.cmd` wrappers instead — they work regardless of the execution policy:
+
+```powershell
+.\setup.cmd
+.\run.cmd          # or .\run.cmd -Prod
+.\stop.cmd
+```
+
+(Alternatively, allow local scripts once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` — a per-user setting,
+no admin needed — then the `.ps1` commands work directly.)
+
 Requires [Node.js 24+](https://nodejs.org) (this project is built on Node's
 built-in `node:sqlite` and native TypeScript execution — **no other runtime
 dependencies**). The app is fully usable with **zero API keys**: it ships a
@@ -92,6 +105,10 @@ capture views for docs, open the app and use your OS screenshot tool
 
 ## Troubleshooting
 
+- **`running scripts is disabled on this system`** — Windows blocks `.ps1`
+  files by default. Use the `.cmd` wrappers (`.\run.cmd`, `.\setup.cmd`,
+  `.\stop.cmd`), or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+  once.
 - **`Node >= 24 required`** — install Node 24+ from nodejs.org; check with
   `node --version`.
 - **Browser opens but says "API DOWN"** — the API didn't start; check

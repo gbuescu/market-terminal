@@ -1,4 +1,4 @@
-# run.ps1 — launch the market terminal and open the browser.
+# run.ps1 - launch the market terminal and open the browser.
 #   .\run.ps1        -> dev mode: API on :4780 + Vite dev server on :5173 (hot reload)
 #   .\run.ps1 -Prod  -> prod mode: build client once, serve everything from :4780
 param(
@@ -20,7 +20,7 @@ function Wait-ForPort([int]$Port, [string]$Label, [int]$TimeoutSec = 60) {
         if (Test-PortListening $Port) { return $true }
         Start-Sleep -Milliseconds 500
     }
-    Write-Warning "$Label did not start listening on :$Port within ${TimeoutSec}s. Check .run\ logs."
+    Write-Warning "$Label did not start listening on port $Port within $TimeoutSec s. Check .run logs."
     return $false
 }
 
@@ -30,29 +30,32 @@ function Wait-ForHealth([int]$Port, [int]$TimeoutSec = 30) {
         try {
             $r = Invoke-WebRequest -Uri "http://localhost:$Port/api/health" -UseBasicParsing -TimeoutSec 3
             if ($r.StatusCode -eq 200) { return $true }
-        } catch { Start-Sleep -Milliseconds 500 }
+        } catch {
+            Start-Sleep -Milliseconds 500
+        }
     }
-    Write-Warning "API on :$Port did not pass its health check. Check .run\server.log."
+    Write-Warning "API on port $Port did not pass its health check. Check .run\server.log."
     return $false
 }
 
 if (-not (Test-Path 'node_modules')) {
-    Write-Host 'node_modules missing — running setup.ps1 first...' -ForegroundColor Yellow
+    Write-Host 'node_modules missing - running setup.ps1 first...' -ForegroundColor Yellow
     & .\setup.ps1
 }
 if (-not (Test-Path '.run')) { New-Item -ItemType Directory '.run' | Out-Null }
 
 if (Test-PortListening $apiPort) {
-    Write-Host "API already listening on :$apiPort — reusing it. (Use .\stop.ps1 to restart cleanly.)"
-} else {
+    Write-Host "API already listening on port $apiPort - reusing it. (Use .\stop.ps1 to restart cleanly.)"
+}
+else {
     if ($Prod) {
         Write-Host 'Building client...' -ForegroundColor Yellow
         npm run build
         if ($LASTEXITCODE -ne 0) { Write-Error 'client build failed.' }
     }
-    Write-Host "Starting API server on :$apiPort ..."
-    $p = Start-Process cmd.exe -ArgumentList '/c', "npm run dev:server >> .run\server.log 2>&1" `
-        -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru
+    Write-Host "Starting API server on port $apiPort ..."
+    $serverCmd = 'npm run dev:server >> .run\server.log 2>&1'
+    $p = Start-Process cmd.exe -ArgumentList '/c', $serverCmd -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru
     $p.Id | Out-File .run\server.pid -Encoding ascii
     if (-not (Wait-ForPort $apiPort 'API server')) { exit 1 }
     if (-not (Wait-ForHealth $apiPort)) { exit 1 }
@@ -61,13 +64,15 @@ if (Test-PortListening $apiPort) {
 
 if ($Prod) {
     $url = "http://localhost:$apiPort"
-} else {
+}
+else {
     if (Test-PortListening $webPort) {
-        Write-Host "Vite already listening on :$webPort — reusing it."
-    } else {
-        Write-Host "Starting Vite dev server on :$webPort ..."
-        $p = Start-Process cmd.exe -ArgumentList '/c', "npm run dev:client >> .run\client.log 2>&1" `
-            -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru
+        Write-Host "Vite already listening on port $webPort - reusing it."
+    }
+    else {
+        Write-Host "Starting Vite dev server on port $webPort ..."
+        $clientCmd = 'npm run dev:client >> .run\client.log 2>&1'
+        $p = Start-Process cmd.exe -ArgumentList '/c', $clientCmd -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru
         $p.Id | Out-File .run\client.pid -Encoding ascii
         if (-not (Wait-ForPort $webPort 'Vite dev server')) { exit 1 }
     }

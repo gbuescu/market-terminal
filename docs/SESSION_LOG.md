@@ -35,6 +35,20 @@ afterwards for a clean first launch.
 **Status:** all six build phases complete. Enhancement backlog (not phase
 scope) noted in ROADMAP.
 
+**Hotfix (same day, after user launch attempt):**
+- User's PowerShell is `Restricted` → `.ps1` launch blocked. Added
+  `run.cmd` / `setup.cmd` / `stop.cmd` batch wrappers that call the matching
+  `.ps1` under `-ExecutionPolicy Bypass` (batch files aren't policy-blocked).
+- Found `run.ps1` had never actually been executed in any prior session
+  (servers were always started directly via `npm run start`). Its Phase 6
+  edit left backtick line-continuations that Windows PowerShell 5.1 failed to
+  parse ("Unexpected token '}'"). Rewrote `run.ps1` ASCII-only with no
+  backtick continuations (command assigned to a variable, single-line
+  Start-Process). All three scripts now pass `Parser::ParseFile`.
+- Verified: `run.cmd -Prod` builds, starts API, health check passes, serves
+  index on :4780. README + CLAUDE.md document the wrapper + the ASCII/no-
+  backtick rule.
+
 ---
 
 ## Session 6 — 2026-07-15 — Phase 5: Learning workflow
