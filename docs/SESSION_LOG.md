@@ -4,6 +4,44 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 8 — 2026-07-16 — Phase 7: Advanced charting (post-v1)
+
+**Repo state at start:** v1 complete (all 6 phases), commit `b6b67a3`.
+User asked to "step up to phase 7" — no Phase 7 existed, so defined one
+that stays in-constraint (read-only) and is testable with existing data:
+advanced charting. No server changes (reuses /api/series).
+
+**Built:**
+- `lib/indicators.ts`: `sma(values, period)` (nulls until warmed up),
+  `normalizePct(values)`.
+- Rewrote `modules/Chart.tsx` into `ChartCanvas` + container:
+  - crosshair on SVG mousemove → tooltip (OHLCV in price mode; date +
+    per-series % in compare mode); vertical guide + per-series dots.
+  - SMA50/SMA200 dashed overlays + legend (price mode only).
+  - VOL subpanel (bars from candle.v) when volume present, price mode.
+  - comparison: add up to 4 symbols (fetched via getEnvelope per symbol,
+    refetch on range change), normalized % lines, shared % axis, legend
+    with per-symbol return + remove ×. Adding a compare forces % mode;
+    SMA/VOL/% toggles disabled while comparing.
+  - toolbar: ranges + SMA50/SMA200/VOL/% toggle group; body has a
+    "+ compare symbol" form.
+- Styles: crosshair/tooltip/legend/volbar/series/toggle rules.
+- Bonus fix (`state/workspace.tsx`): deep-link to a view absent from the
+  saved layout now appends+activates it instead of being ignored.
+
+**Verified (live Yahoo data, browser):** AAPL GP renders (last 327.50,
++28.16%/6M, 123 bars); SMA50+SMA200 → 2 dashed paths+legend; VOL → 123
+bars; add MSFT → 2 series, % axis, legend AAPL +28.2% / MSFT -14.0%;
+crosshair tooltip in both modes (price OHLCV + Vol; compare per-symbol %);
+remove compare returns to price mode; deep-link reload to #/chart/NVDA
+appended NVDA GP and activated it alongside the restored layout.
+typecheck ✓ lint ✓ build ✓. Reset workspace layout to clean afterward.
+
+**Next:** enhancement backlog in ROADMAP (FRED macro provider, tab
+reorder, more screener metrics).
+
+---
+
 ## Session 7 — 2026-07-15 — Phase 6: Polish (final phase)
 
 **Repo state at start:** Phase 5 learning, commit `8b59355`.

@@ -598,6 +598,124 @@ kbd {
   font-weight: 700;
 }
 
+.range-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------- advanced charting (Phase 7) ---------- */
+
+.chart-toggles {
+  display: flex;
+  gap: 2px;
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.chart-compare-form {
+  margin: 4px 0 8px;
+}
+
+.chart-svg-wrap {
+  position: relative;
+}
+
+.chart-series {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.chart-ma {
+  fill: none;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  opacity: 0.9;
+}
+
+.chart-volbar {
+  fill: var(--border);
+}
+
+.chart-cross {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.chart-zero {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 2px 6px 6px;
+  font-size: 11px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 3px;
+  border-radius: 1px;
+  display: inline-block;
+}
+
+.legend-dash {
+  height: 0;
+  border-top: 2px dashed;
+  width: 12px;
+}
+
+.legend-x {
+  color: var(--text-dim);
+  padding: 0 2px;
+  font-size: 12px;
+}
+
+.legend-x:hover {
+  color: var(--down);
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 8px;
+  min-width: 150px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 5px 7px;
+  font-size: 11px;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 50%);
+  z-index: 5;
+}
+
+.tt-date {
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.tt-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.tt-row span:nth-child(even) {
+  min-width: 52px;
+}
+
 /* ---------- data presentation ---------- */
 
 .pos {

@@ -97,6 +97,27 @@ shared blocker. Tick items as they land; note the session date.
 - [x] Launch reliability: run.ps1 now waits for an actual /api/health 200
       before opening the browser
 
-**All six build phases complete.** Future work is enhancement, not phase
-scope: real economic-calendar provider (FRED key slot exists), intraday
-chart crosshair/tooltip, drag-reorder tabs, more screener metrics.
+**All six build phases complete.** Remaining ideas are enhancements beyond
+the original plan; they get their own numbered phases as they land.
+
+## Phase 7 — Advanced charting ✅ (2026-07-16, post-v1 enhancement)
+
+Extends the existing GP module; no architectural change, no new server code
+(reuses `/api/series`), still read-only.
+
+- [x] Interactive crosshair with hover tooltip — OHLCV in price mode,
+      per-symbol % in comparison mode
+- [x] Moving-average overlays: SMA50 / SMA200 toggles (client-side from
+      candle closes, `lib/indicators.ts`), dashed with a legend
+- [x] Volume subpanel (VOL toggle) when the series carries volume
+- [x] Multi-symbol comparison: overlay up to 4 extra symbols as normalized
+      % lines on a shared % axis (forces percent mode), legend with per-
+      symbol return and remove control
+- [x] Bonus fix: deep-link to a view not in the saved layout now opens that
+      view (previously the saved active tab silently won)
+
+## Enhancement backlog (unstarted)
+
+- Real economic-calendar/macro provider (FRED key slot already exists)
+- Drag-to-reorder tabs; split-pane workspaces
+- More screener metrics + saved screens; watchlist CSV import

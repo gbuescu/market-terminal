@@ -164,7 +164,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
               title: t.title,
             }));
           if (restoredTabs.length > 0) {
-            setTabs(restoredTabs);
             // Prefer a specific deep-link in the hash; else the saved active tab.
             const hashInv = invocationFromHash(window.location.hash);
             const hashIdx = hashInv
@@ -174,11 +173,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                     (t.symbol ?? '') === (hashInv.symbol ?? ''),
                 )
               : -1;
-            const idx =
-              hashIdx >= 0
-                ? hashIdx
-                : Math.min(Math.max(layout.activeIndex, 0), restoredTabs.length - 1);
-            setActiveId(restoredTabs[idx].id);
+            if (hashInv && hashIdx < 0) {
+              // Deep-link points to a view not in the saved layout — open it too.
+              const extra: Tab = {
+                id: crypto.randomUUID(),
+                moduleId: hashInv.def.moduleId,
+                symbol: hashInv.symbol,
+                title: hashInv.canonical,
+              };
+              setTabs([...restoredTabs, extra]);
+              setActiveId(extra.id);
+            } else {
+              setTabs(restoredTabs);
+              const idx =
+                hashIdx >= 0
+                  ? hashIdx
+                  : Math.min(Math.max(layout.activeIndex, 0), restoredTabs.length - 1);
+              setActiveId(restoredTabs[idx].id);
+            }
             restored = true;
           }
         }
