@@ -1,6 +1,23 @@
-import type { EcoEvent, NewsItem, Quote, Range, Series, SymbolInfo } from '../../shared/types.ts';
+import type {
+  EcoEvent,
+  Fundamentals,
+  NewsItem,
+  Quote,
+  Range,
+  Series,
+  Statements,
+  StatementType,
+  SymbolInfo,
+} from '../../shared/types.ts';
 
-export type Capability = 'search' | 'quotes' | 'series' | 'news' | 'calendar';
+export type Capability =
+  | 'search'
+  | 'quotes'
+  | 'series'
+  | 'news'
+  | 'calendar'
+  | 'fundamentals'
+  | 'statements';
 
 /**
  * Thrown by an adapter when it cannot serve a *shape* of request (e.g.
@@ -25,4 +42,6 @@ export interface Provider {
   series?(symbol: string, range: Range): Promise<Series>;
   news?(symbol?: string): Promise<NewsItem[]>;
   calendar?(): Promise<EcoEvent[]>;
+  fundamentals?(symbol: string): Promise<Fundamentals>;
+  statements?(symbol: string, type: StatementType): Promise<Statements>;
 }

@@ -8,18 +8,29 @@
  */
 import type { ProviderInfo } from '../../shared/types.ts';
 import { getSetting, isSettingKey } from '../settings.ts';
+import { alphaVantageProvider } from './alphavantage.ts';
 import { demoProvider } from './demo.ts';
+import { finnhubProvider } from './finnhub.ts';
 import type { Capability, Provider } from './types.ts';
 import { yahooProvider } from './yahoo.ts';
 
-export const PROVIDERS: readonly Provider[] = [yahooProvider, demoProvider];
+export const PROVIDERS: readonly Provider[] = [
+  yahooProvider,
+  finnhubProvider,
+  alphaVantageProvider,
+  demoProvider,
+];
 
 const DEFAULT_ORDER: Record<Capability, string[]> = {
   search: ['yahoo', 'demo'],
-  quotes: ['yahoo', 'demo'],
+  quotes: ['yahoo', 'finnhub', 'demo'],
   series: ['yahoo', 'demo'],
   news: ['yahoo', 'demo'],
   calendar: ['demo'],
+  // Keyed providers first when ready; demo otherwise. Yahoo's fundamentals
+  // endpoints are crumb-gated (fragile scraping) — deliberately not used.
+  fundamentals: ['finnhub', 'alphavantage', 'demo'],
+  statements: ['alphavantage', 'demo'],
 };
 
 function byId(id: string): Provider | undefined {

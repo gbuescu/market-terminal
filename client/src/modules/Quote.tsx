@@ -46,6 +46,14 @@ export function Quote({ tab }: { tab: Tab }) {
           <button type="button" className="btn" title="Open news" onClick={() => crossNav('N')}>
             N
           </button>
+          <button
+            type="button"
+            className="btn"
+            title="Open fundamentals"
+            onClick={() => crossNav('FA')}
+          >
+            FA
+          </button>
           <button type="button" className="btn" title="Set alert" onClick={() => crossNav('ALRT')}>
             ALRT
           </button>

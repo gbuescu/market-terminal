@@ -4,6 +4,43 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 5 — 2026-07-14 — Phase 4: Analytics modules
+
+**Repo state at start:** Phase 3 core modules, commit `9c2f01f` (approx —
+see git log).
+
+**Provider decision (was flagged):** fundamentals/statements NOT scraped
+from Yahoo (crumb-gated). Shipped key-gated `finnhub` (quotes+fundamentals)
+and `alphavantage` (fundamentals+statements) adapters instead — they
+activate when keys are saved in SET; demo covers everything with zero keys.
+Both adapters are lightly tested (no keys on this machine) — verify on
+first live use.
+
+**Built:**
+- Capabilities extended: fundamentals, statements (types, registry orders,
+  settings whitelist provider.fundamentals/provider.statements).
+- Demo provider: deterministic fundamentals + 3 statements × 4 annual
+  periods for any symbol.
+- Routes: /api/fundamentals (24h TTL), /api/statements (7d TTL),
+  /api/screener (28-name SCREEN_UNIVERSE via fundamentals provider, 24h).
+- Client: FA (profile + metric grids), FS (income/balance/cashflow toggle),
+  SCR (filters: min cap/max P/E/min yield; sortable columns; symbol → FA),
+  RV (up to 6 symbols side-by-side; "AAPL RV" seeds), FX/RATES/CMDTY
+  dashboards on shared QuoteBoard (rows click through to GP), sidebar
+  ANALYTICS section, Quote toolbar gained FA.
+
+**Verified:** typecheck ✓ lint ✓ build ✓; endpoints: fundamentals/
+statements/screener correct demo envelopes; all 17 new dashboard symbols
+resolve on live yahoo (Treasury curve 3.70→5.09%, FX crosses, silver, corn,
+SOL); browser: FA page with DEMO badge, SCR 28 sortable rows, RATES live
+curve.
+
+**Next session:** Phase 5 — learning workflow (command cheat sheet exists
+in HELP; add finance glossary, student mode, onboarding/tutorial panel,
+mnemonic training).
+
+---
+
 ## Session 4 — 2026-07-14 — Phase 3: Core modules
 
 **Repo state at start:** Phase 2 data layer, commit `cf8bb3d`.

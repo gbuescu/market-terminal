@@ -18,6 +18,23 @@ export function fmtPct(x: number | undefined): string {
   return `${x >= 0 ? '+' : ''}${x.toFixed(2)}%`;
 }
 
+/** Large money amounts: 2.41T, 890.2B, 45.1M. */
+export function fmtLarge(x: number | null | undefined): string {
+  if (x === null || x === undefined || Number.isNaN(x)) return '—';
+  const sign = x < 0 ? '-' : '';
+  const abs = Math.abs(x);
+  if (abs >= 1e12) return `${sign}${(abs / 1e12).toFixed(2)}T`;
+  if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(1)}B`;
+  if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`;
+  return `${sign}${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+/** Ratio-ish metric with fixed decimals, '—' for missing. */
+export function fmtNum(x: number | undefined, decimals = 2): string {
+  if (x === undefined || Number.isNaN(x)) return '—';
+  return x.toFixed(decimals);
+}
+
 export function fmtVolume(x: number | undefined): string {
   if (x === undefined) return '—';
   if (x >= 1e9) return `${(x / 1e9).toFixed(2)}B`;

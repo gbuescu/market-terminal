@@ -755,6 +755,69 @@ a.news-headline:hover {
   margin-right: 6px;
 }
 
+/* ---------- analytics (fundamentals, statements, screener, peers) ---------- */
+
+.fa-page {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+  align-items: start;
+  max-width: 1100px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px 14px;
+}
+
+.metric-label {
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.metric-value {
+  font-size: 14px;
+  text-align: left;
+}
+
+.fs-table {
+  max-width: 760px;
+}
+
+.fs-table th:first-child {
+  min-width: 160px;
+}
+
+.scr-table {
+  max-width: 960px;
+}
+
+.th-sort {
+  color: var(--text-dim);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+}
+
+.th-sort:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.rv-table {
+  max-width: 860px;
+}
+
+.rv-table th.num,
+.rv-table td.num {
+  min-width: 92px;
+}
+
+.text-input-narrow {
+  width: 80px;
+}
+
 /* ---------- workspace objects (watchlists, notes, alerts) ---------- */
 
 .split-page {

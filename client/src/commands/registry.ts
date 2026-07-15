@@ -14,7 +14,14 @@ export type ModuleId =
   | 'alerts'
   | 'notes'
   | 'settings'
-  | 'help';
+  | 'help'
+  | 'fx'
+  | 'rates'
+  | 'commodities'
+  | 'fundamentals'
+  | 'statements'
+  | 'screener'
+  | 'peers';
 
 export interface CommandDef {
   /** Primary mnemonic, uppercase, e.g. 'GP' */
@@ -109,6 +116,76 @@ export const COMMANDS: readonly CommandDef[] = [
     takesSymbol: 'optional',
     keywords: ['journal', 'research', 'memo', 'write'],
     examples: ['NOTE', 'NVDA NOTE'],
+  },
+  {
+    mnemonic: 'FX',
+    aliases: ['CURRENCY', 'CURRENCIES'],
+    name: 'FX Dashboard',
+    description: 'Major currency pairs at a glance',
+    moduleId: 'fx',
+    takesSymbol: 'none',
+    keywords: ['forex', 'currency', 'dollar', 'euro', 'yen'],
+    examples: ['FX'],
+  },
+  {
+    mnemonic: 'RATES',
+    aliases: ['RATE', 'YIELDS', 'BONDS'],
+    name: 'Rates Dashboard',
+    description: 'Treasury yields across the curve',
+    moduleId: 'rates',
+    takesSymbol: 'none',
+    keywords: ['treasury', 'yield', 'curve', 'bond', 'fixed income'],
+    examples: ['RATES'],
+  },
+  {
+    mnemonic: 'CMDTY',
+    aliases: ['CMD', 'COMM', 'COMMODITIES'],
+    name: 'Commodities Dashboard',
+    description: 'Metals, energy and crypto futures/spot',
+    moduleId: 'commodities',
+    takesSymbol: 'none',
+    keywords: ['gold', 'oil', 'metals', 'energy', 'futures', 'crypto'],
+    examples: ['CMDTY'],
+  },
+  {
+    mnemonic: 'FA',
+    aliases: ['FUND', 'FUNDAMENTALS', 'PROFILE'],
+    name: 'Fundamentals',
+    description: 'Company profile and key financial metrics',
+    moduleId: 'fundamentals',
+    takesSymbol: 'required',
+    keywords: ['ratios', 'pe', 'margins', 'valuation', 'company'],
+    examples: ['AAPL FA'],
+  },
+  {
+    mnemonic: 'FS',
+    aliases: ['FIN', 'STATEMENTS', 'FINANCIALS'],
+    name: 'Financial Statements',
+    description: 'Income statement, balance sheet, cash flow',
+    moduleId: 'statements',
+    takesSymbol: 'required',
+    keywords: ['income', 'balance', 'cashflow', 'revenue', 'earnings'],
+    examples: ['AAPL FS'],
+  },
+  {
+    mnemonic: 'SCR',
+    aliases: ['SCREEN', 'SCREENER'],
+    name: 'Equity Screener',
+    description: 'Filter a large-cap universe by valuation metrics',
+    moduleId: 'screener',
+    takesSymbol: 'none',
+    keywords: ['filter', 'find', 'stocks', 'valuation', 'universe'],
+    examples: ['SCR'],
+  },
+  {
+    mnemonic: 'RV',
+    aliases: ['PEERS', 'COMP', 'COMPARE'],
+    name: 'Peer Compare',
+    description: 'Side-by-side relative value across symbols',
+    moduleId: 'peers',
+    takesSymbol: 'optional',
+    keywords: ['relative', 'value', 'comparable', 'versus'],
+    examples: ['RV', 'AAPL RV'],
   },
   {
     mnemonic: 'SET',

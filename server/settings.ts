@@ -10,6 +10,8 @@ export const SETTING_KEYS = [
   'provider.series',
   'provider.news',
   'provider.calendar',
+  'provider.fundamentals',
+  'provider.statements',
   'key.finnhub',
   'key.alphavantage',
   'key.fred',

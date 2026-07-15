@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Range } from '../shared/types.ts';
+import type { Fundamentals, Range, StatementType } from '../shared/types.ts';
 import { RANGES } from '../shared/types.ts';
 import { type CacheHit, getOrFetch } from './cache.ts';
 import { db, getMeta } from './db.ts';
@@ -169,6 +169,89 @@ api.get('/calendar', async (_req, res) => {
     if (!p.calendar) throw new Unsupported();
     return p.calendar();
   });
+  res.status(r.status).json(r.body);
+});
+
+// ---------- analytics (Phase 4) ----------
+
+api.get('/fundamentals', async (req, res) => {
+  const symbols = parseSymbols(req.query.symbol, 1);
+  if (!symbols) {
+    res.status(400).json({ error: 'symbol required' });
+    return;
+  }
+  const r = await serveData('fundamentals', symbols[0], 86_400_000, (p) => {
+    if (!p.fundamentals) throw new Unsupported();
+    return p.fundamentals(symbols[0]);
+  });
+  res.status(r.status).json(r.body);
+});
+
+api.get('/statements', async (req, res) => {
+  const symbols = parseSymbols(req.query.symbol, 1);
+  const type = typeof req.query.type === 'string' ? req.query.type : '';
+  if (!symbols || !['income', 'balance', 'cashflow'].includes(type)) {
+    res.status(400).json({ error: 'symbol and type (income|balance|cashflow) required' });
+    return;
+  }
+  // 7-day TTL: annual statements barely move and Alpha Vantage allows 25 req/day.
+  const r = await serveData('statements', `${symbols[0]}:${type}`, 7 * 86_400_000, (p) => {
+    if (!p.statements) throw new Unsupported();
+    return p.statements(symbols[0], type as StatementType);
+  });
+  res.status(r.status).json(r.body);
+});
+
+/** Large-cap US universe the screener evaluates. Extend deliberately. */
+const SCREEN_UNIVERSE = [
+  'AAPL',
+  'MSFT',
+  'NVDA',
+  'AMZN',
+  'GOOGL',
+  'META',
+  'TSLA',
+  'AVGO',
+  'JPM',
+  'V',
+  'MA',
+  'UNH',
+  'LLY',
+  'XOM',
+  'CVX',
+  'WMT',
+  'PG',
+  'JNJ',
+  'HD',
+  'KO',
+  'PEP',
+  'MRK',
+  'ABBV',
+  'BAC',
+  'CRM',
+  'ORCL',
+  'NFLX',
+  'AMD',
+];
+
+api.get('/screener', async (_req, res) => {
+  const r = await serveData(
+    'fundamentals',
+    `universe:${SCREEN_UNIVERSE.length}`,
+    86_400_000,
+    async (p) => {
+      if (!p.fundamentals) throw new Unsupported();
+      const settled = await Promise.allSettled(SCREEN_UNIVERSE.map((s) => p.fundamentals?.(s)));
+      const rows = settled
+        .filter(
+          (x): x is PromiseFulfilledResult<Fundamentals> =>
+            x.status === 'fulfilled' && x.value !== undefined,
+        )
+        .map((x) => x.value);
+      if (rows.length === 0) throw new Error('screener universe fetch failed');
+      return rows;
+    },
+  );
   res.status(r.status).json(r.body);
 });
 

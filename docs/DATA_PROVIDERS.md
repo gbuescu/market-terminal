@@ -12,8 +12,10 @@ Phase 2 shipped two providers behind the adapter boundary
 
 | Provider | Capabilities | Key | Latency label | Notes |
 |---|---|---|---|---|
-| `demo` | search, quotes, series, news, calendar | none | synthetic (~rt) | Deterministic seeded walk; **every payload flagged `demo: true`** and badged "DEMO DATA" in the UI |
+| `demo` | search, quotes, series, news, calendar, fundamentals, statements | none | synthetic (~rt) | Deterministic seeded walk; **every payload flagged `demo: true`** and badged "DEMO DATA" in the UI |
 | `yahoo` | search, quotes, series, news (per-symbol only) | none | labeled DELAYED (≤15 min, exchange-dependent) | **Unofficial** endpoints (`query1.finance.yahoo.com` v8 chart / v1 search). Undocumented; may break or rate-limit at any time. Browser-like User-Agent required. |
+| `finnhub` | quotes, fundamentals | required (free) | near-real-time (US) | Free tier 60 req/min. Activates when `key.finnhub` saved in SET. Fundamentals via /stock/metric + /stock/profile2. Lightly tested (no key on dev machine) — verify on first live use. |
+| `alphavantage` | fundamentals, statements | required (free) | EOD/daily | Free tier only **25 req/DAY** → statements cached 7 days, fundamentals 24 h. Activates when `key.alphavantage` saved in SET. Lightly tested (no key on dev machine) — verify on first live use. |
 
 Selection: per-capability priority (yahoo → demo; calendar demo-only), user
 override via `provider.<capability>` setting ('auto' or provider id; a forced
@@ -51,3 +53,11 @@ refresh fails.
 - 2026-07-14: API keys stored plaintext in local SQLite (`data\terminal.db`,
   gitignored) — acceptable for a single-user local app; revisit if that
   assumption changes.
+- 2026-07-14 (Phase 4): fundamentals/statements deliberately NOT scraped
+  from Yahoo — its quoteSummary endpoints are crumb/cookie-gated and
+  fragile. Instead: key-gated finnhub + alphavantage adapters (free tiers),
+  demo provider as the zero-key default. Capability orders:
+  fundamentals = finnhub → alphavantage → demo; statements = alphavantage →
+  demo. Screener evaluates a fixed 28-name large-cap universe
+  (SCREEN_UNIVERSE in server/routes.ts) through the fundamentals provider,
+  cached 24 h.

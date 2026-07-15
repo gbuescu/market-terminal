@@ -5,11 +5,27 @@ import { useWorkspace } from '../state/workspace';
 const SECTIONS: { label: string; items: CommandDef[] }[] = [
   {
     label: 'MARKETS',
-    items: [MODULE_COMMAND.monitor, MODULE_COMMAND.news, MODULE_COMMAND.calendar],
+    items: [
+      MODULE_COMMAND.monitor,
+      MODULE_COMMAND.fx,
+      MODULE_COMMAND.rates,
+      MODULE_COMMAND.commodities,
+      MODULE_COMMAND.news,
+      MODULE_COMMAND.calendar,
+    ],
   },
   {
     label: 'SECURITIES',
-    items: [MODULE_COMMAND.quote, MODULE_COMMAND.chart],
+    items: [
+      MODULE_COMMAND.quote,
+      MODULE_COMMAND.chart,
+      MODULE_COMMAND.fundamentals,
+      MODULE_COMMAND.statements,
+    ],
+  },
+  {
+    label: 'ANALYTICS',
+    items: [MODULE_COMMAND.screener, MODULE_COMMAND.peers],
   },
   {
     label: 'WORKSPACE',

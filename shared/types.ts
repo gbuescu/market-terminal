@@ -113,6 +113,50 @@ export interface SettingsPayload {
   providers: ProviderInfo[];
 }
 
+// ---------- analytics (Phase 4) ----------
+
+export interface Fundamentals {
+  symbol: string;
+  name?: string;
+  exchange?: string;
+  sector?: string;
+  industry?: string;
+  currency?: string;
+  /** absolute USD (not millions) */
+  marketCap?: number;
+  peTTM?: number;
+  epsTTM?: number;
+  /** percent, e.g. 0.55 = 0.55% */
+  dividendYield?: number;
+  grossMarginTTM?: number;
+  operatingMarginTTM?: number;
+  netMarginTTM?: number;
+  roeTTM?: number;
+  debtToEquity?: number;
+  beta?: number;
+  week52High?: number;
+  week52Low?: number;
+  week52ChangePct?: number;
+}
+
+export type StatementType = 'income' | 'balance' | 'cashflow';
+
+export interface StatementPeriod {
+  /** e.g. '2025-09-30' */
+  period: string;
+  /** keyed by line-item label; absolute currency units */
+  values: Record<string, number | null>;
+}
+
+export interface Statements {
+  symbol: string;
+  type: StatementType;
+  currency?: string;
+  /** ordered labels; every period.values is keyed by these */
+  lineItems: string[];
+  periods: StatementPeriod[];
+}
+
 // ---------- persisted workspace objects (Phase 3) ----------
 
 export interface WatchlistItem {

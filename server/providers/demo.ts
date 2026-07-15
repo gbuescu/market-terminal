@@ -8,10 +8,13 @@ import type {
   AssetClass,
   Candle,
   EcoEvent,
+  Fundamentals,
   NewsItem,
   Quote,
   Range,
   Series,
+  Statements,
+  StatementType,
   SymbolInfo,
 } from '../../shared/types.ts';
 import type { Provider } from './types.ts';
@@ -251,6 +254,110 @@ function demoCalendar(): EcoEvent[] {
   }));
 }
 
+const SECTORS: Record<string, [string, string]> = {
+  AAPL: ['Technology', 'Consumer Electronics'],
+  MSFT: ['Technology', 'Software'],
+  NVDA: ['Technology', 'Semiconductors'],
+  AMZN: ['Consumer Cyclical', 'Internet Retail'],
+  GOOGL: ['Communication Services', 'Internet Content'],
+  META: ['Communication Services', 'Internet Content'],
+  TSLA: ['Consumer Cyclical', 'Auto Manufacturers'],
+  JPM: ['Financial Services', 'Banks'],
+  XOM: ['Energy', 'Oil & Gas Integrated'],
+};
+
+function pick(r: () => number, lo: number, hi: number, decimals = 2): number {
+  return round(lo + r() * (hi - lo), decimals);
+}
+
+function demoFundamentals(symbol: string): Fundamentals {
+  const s = lookup(symbol);
+  const r = rng(hash(`${symbol}:fundamentals`));
+  const [sector, industry] = SECTORS[symbol] ?? ['Technology', 'Diversified'];
+  const shares = 0.5e9 + r() * 15e9;
+  const price = demoPrice(symbol, Date.now());
+  const netMargin = pick(r, 5, 32);
+  const isPayer = r() > 0.45;
+  return {
+    symbol,
+    name: s.name,
+    exchange: 'DEMO',
+    sector,
+    industry,
+    currency: s.currency,
+    marketCap: Math.round(price * shares),
+    peTTM: pick(r, 9, 44, 1),
+    epsTTM: round(price / pick(r, 9, 44, 1), 2),
+    dividendYield: isPayer ? pick(r, 0.3, 3.8) : 0,
+    grossMarginTTM: pick(r, 25, 70, 1),
+    operatingMarginTTM: pick(r, 8, 40, 1),
+    netMarginTTM: netMargin,
+    roeTTM: pick(r, 6, 45, 1),
+    debtToEquity: pick(r, 0.1, 1.9),
+    beta: pick(r, 0.6, 1.9),
+    week52High: round(price * (1 + pick(r, 0.05, 0.35)), 2),
+    week52Low: round(price * (1 - pick(r, 0.08, 0.4)), 2),
+    week52ChangePct: pick(r, -30, 55, 1),
+  };
+}
+
+const STATEMENT_ITEMS: Record<StatementType, string[]> = {
+  income: ['Revenue', 'Gross Profit', 'Operating Income', 'Net Income'],
+  balance: [
+    'Total Assets',
+    'Total Liabilities',
+    'Shareholder Equity',
+    'Cash & Equivalents',
+    'Long-Term Debt',
+  ],
+  cashflow: ['Operating Cash Flow', 'Capital Expenditure', 'Free Cash Flow', 'Dividends Paid'],
+};
+
+function demoStatements(symbol: string, type: StatementType): Statements {
+  const s = lookup(symbol);
+  const r = rng(hash(`${symbol}:statements`));
+  const f = demoFundamentals(symbol);
+  const revenue0 = (f.marketCap ?? 5e10) * pick(r, 0.15, 0.6);
+  const growth = pick(r, 0.03, 0.16, 3);
+  const year = new Date().getFullYear();
+  const periods = [0, 1, 2, 3].map((back) => {
+    const rev = revenue0 / (1 + growth) ** back;
+    const gross = rev * ((f.grossMarginTTM ?? 40) / 100) * pick(r, 0.96, 1.04);
+    const op = rev * ((f.operatingMarginTTM ?? 20) / 100) * pick(r, 0.94, 1.06);
+    const net = rev * ((f.netMarginTTM ?? 15) / 100) * pick(r, 0.93, 1.07);
+    const assets = rev * pick(r, 1.2, 2.4);
+    const liabilities = assets * pick(r, 0.4, 0.7);
+    const opCF = net * pick(r, 1.05, 1.4);
+    const capex = rev * pick(r, 0.03, 0.09);
+    let values: Record<string, number | null>;
+    if (type === 'income') {
+      values = {
+        Revenue: Math.round(rev),
+        'Gross Profit': Math.round(gross),
+        'Operating Income': Math.round(op),
+        'Net Income': Math.round(net),
+      };
+    } else if (type === 'balance') {
+      values = {
+        'Total Assets': Math.round(assets),
+        'Total Liabilities': Math.round(liabilities),
+        'Shareholder Equity': Math.round(assets - liabilities),
+        'Cash & Equivalents': Math.round(assets * pick(r, 0.05, 0.2)),
+        'Long-Term Debt': Math.round(assets * pick(r, 0.1, 0.3)),
+      };
+    } else {
+      values = {
+        'Operating Cash Flow': Math.round(opCF),
+        'Capital Expenditure': -Math.round(capex),
+        'Free Cash Flow': Math.round(opCF - capex),
+        'Dividends Paid': f.dividendYield ? -Math.round(net * pick(r, 0.15, 0.5)) : 0,
+      };
+    }
+    return { period: `${year - 1 - back}-12-31`, values };
+  });
+  return { symbol, type, currency: s.currency, lineItems: STATEMENT_ITEMS[type], periods };
+}
+
 export const demoProvider: Provider = {
   id: 'demo',
   name: 'Demo / seed data',
@@ -258,7 +365,7 @@ export const demoProvider: Provider = {
   delaySeconds: 0,
   note: 'Synthetic deterministic data. Not real market data — for offline use and learning.',
   ready: () => true,
-  capabilities: ['search', 'quotes', 'series', 'news', 'calendar'],
+  capabilities: ['search', 'quotes', 'series', 'news', 'calendar', 'fundamentals', 'statements'],
   search: async (query: string): Promise<SymbolInfo[]> => {
     const q = query.trim().toUpperCase();
     return Object.entries(UNIVERSE)
@@ -276,4 +383,6 @@ export const demoProvider: Provider = {
   series: async (symbol: string, range: Range) => demoSeries(symbol, range),
   news: async (symbol?: string) => demoNews(symbol),
   calendar: async () => demoCalendar(),
+  fundamentals: async (symbol: string) => demoFundamentals(symbol),
+  statements: async (symbol: string, type: StatementType) => demoStatements(symbol, type),
 };

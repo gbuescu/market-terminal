@@ -50,13 +50,23 @@ shared blocker. Tick items as they land; note the session date.
       60s through the provider registry (notify-only), triggered/active
       sections, status-bar "⚠ N ALERTS TRIGGERED" flag, "AAPL ALRT" prefill
 
-## Phase 4 — Analytics modules (CURRENT)
+## Phase 4 — Analytics modules ✅ (2026-07-14)
 
-- [ ] Equity screener · relative value · peer compare
-- [ ] Company fundamentals · financial statements
-- [ ] Rates / FX / commodities dashboards
+- [x] Equity screener (SCR): 28-name large-cap universe, client-side filters
+      (min mkt cap / max P/E / min div yield) + sortable columns
+- [x] Relative value / peer compare (RV): up to 6 symbols side-by-side,
+      "AAPL RV" seeds a comparison
+- [x] Company fundamentals (FA): profile + valuation/profitability metrics
+- [x] Financial statements (FS): income/balance/cashflow, 4 annual periods,
+      normalized line items
+- [x] Rates / FX / commodities dashboards (RATES, FX, CMDTY): shared
+      QuoteBoard over live keyless yahoo quotes (Treasury curve, 14 FX pairs,
+      energy/metals/ags/crypto)
+- [x] Providers: finnhub (fundamentals+quotes) and alphavantage
+      (statements+fundamentals) adapters, key-gated via SET; demo covers
+      everything with zero keys. New capabilities: fundamentals, statements.
 
-## Phase 5 — Learning workflow
+## Phase 5 — Learning workflow (CURRENT)
 
 - [ ] Command cheat sheet · finance glossary
 - [ ] Student mode · onboarding/tutorial panel
