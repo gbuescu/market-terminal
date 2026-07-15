@@ -66,13 +66,20 @@ shared blocker. Tick items as they land; note the session date.
       (statements+fundamentals) adapters, key-gated via SET; demo covers
       everything with zero keys. New capabilities: fundamentals, statements.
 
-## Phase 5 — Learning workflow (CURRENT)
+## Phase 5 — Learning workflow ✅ (2026-07-15)
 
-- [ ] Command cheat sheet · finance glossary
-- [ ] Student mode · onboarding/tutorial panel
-- [ ] Command examples + mnemonic training
+- [x] Command cheat sheet (HELP, auto-generated from registry since Phase 1)
+- [x] Finance glossary (GLOS): 48 curated terms in 6 categories, search +
+      category filters, "see it" links run real commands; "BETA GLOS"
+      deep-links a filtered view
+- [x] Student mode: explainer strip on every module (config/explainers.ts),
+      STUDENT topbar tag, toggle in LEARN, persisted (learn.studentmode)
+- [x] Onboarding/tutorial: first-run banner → LEARN 9-step guided tour with
+      TRY IT buttons executing real commands; progress persisted
+- [x] Mnemonic training: trainer quiz graded by the real parser (aliases
+      count), streak + persisted best streak
 
-## Phase 6 — Polish
+## Phase 6 — Polish (CURRENT)
 
 - [ ] Layout persistence · notifications · CSV export
 - [ ] Better error handling, demos, screenshots

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { parse } from './commands/parser';
 import { CommandBar } from './components/CommandBar';
 import { StateView } from './components/ModuleFrame';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { TabStrip } from './components/TabStrip';
 import { MODULES } from './modules';
+import { StudentProvider, useStudent } from './state/student';
 import { useWorkspace, WorkspaceProvider } from './state/workspace';
 
 /** Isolated so the 1-second tick doesn't re-render the whole shell. */
@@ -64,22 +66,60 @@ function Workspace() {
   );
 }
 
+/** First-run hint strip; disappears once the tour is done or dismissed. */
+function OnboardingBanner() {
+  const ws = useWorkspace();
+  const { onboarded, dismissOnboarding } = useStudent();
+  if (onboarded) return null;
+  return (
+    <div className="onboarding">
+      <span>
+        New here? <span className="accent">LEARN</span> gives you a five-minute tour of the terminal
+        and its command language.
+      </span>
+      <button
+        type="button"
+        className="btn"
+        onClick={() => {
+          const inv = parse('LEARN');
+          if (inv) ws.execute(inv);
+        }}
+      >
+        START TOUR
+      </button>
+      <button type="button" className="btn" onClick={dismissOnboarding}>
+        DISMISS
+      </button>
+    </div>
+  );
+}
+
+function StudentTag() {
+  const { studentMode } = useStudent();
+  if (!studentMode) return null;
+  return <span className="tag tag-student">STUDENT</span>;
+}
+
 export function App() {
   return (
-    <WorkspaceProvider>
-      <div className="terminal">
-        <header className="topbar">
-          <span className="brand">MARKET TERMINAL</span>
-          <span className="tag">LOCAL · READ-ONLY</span>
-          <CommandBar />
-          <Clock />
-        </header>
-        <div className="main">
-          <Sidebar />
-          <Workspace />
+    <StudentProvider>
+      <WorkspaceProvider>
+        <div className="terminal">
+          <header className="topbar">
+            <span className="brand">MARKET TERMINAL</span>
+            <span className="tag">LOCAL · READ-ONLY</span>
+            <StudentTag />
+            <CommandBar />
+            <Clock />
+          </header>
+          <OnboardingBanner />
+          <div className="main">
+            <Sidebar />
+            <Workspace />
+          </div>
+          <StatusBar />
         </div>
-        <StatusBar />
-      </div>
-    </WorkspaceProvider>
+      </WorkspaceProvider>
+    </StudentProvider>
   );
 }

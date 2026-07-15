@@ -4,6 +4,42 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 6 — 2026-07-15 — Phase 5: Learning workflow
+
+**Repo state at start:** Phase 4 analytics, commit `191ed6f` (+docs fix).
+
+**Built:**
+- GLOS glossary module: 48 curated terms across MARKETS / VALUATION /
+  STATEMENTS / FIXED INCOME / FX & MACRO / RISK & DERIVATIVES
+  (config/glossary.ts), search + category chips, "see it: AAPL FA →" links
+  execute real commands. Optional-symbol trick gives "BETA GLOS" filtered
+  deep links.
+- LEARN module: 9-step guided tour (TRY IT buttons run real commands,
+  MARK DONE persists progress; completing the tour also marks onboarding
+  done) + mnemonic trainer (questions generated per round, answers graded
+  by the real parser so aliases count; streak + persisted best).
+- Student mode: config/explainers.ts (one plain-English line per module),
+  strip rendered by ModuleFrame, STUDENT topbar tag, toggle in LEARN.
+- Onboarding: first-run banner under the topbar (START TOUR / DISMISS),
+  hidden once learn.onboarded is set.
+- state/student.tsx context persists all learning state via the settings
+  table (new whitelisted keys: learn.onboarded, learn.studentmode,
+  learn.progress, learn.streak). Sidebar gained a LEARNING section
+  (LEARN, GLOS, HELP); SET remains under SYSTEM.
+
+**Verified:** typecheck ✓ lint ✓ build ✓; browser: onboarding banner on
+first boot, START TOUR opens LEARN, trainer graded alias "YIELDS" as
+correct → RATES with streak persisting to SQLite, student-mode toggle
+shows STUDENT tag + explainer strips, "#/glossary/BETA" filters to 1/48
+terms. Test-set studentmode flag reset afterwards (streak=1 left as
+genuine state).
+
+**Next session:** Phase 6 — polish (layout persistence, better error
+handling, notifications, CSV export, screenshots, README hardening,
+launch reliability).
+
+---
+
 ## Session 5 — 2026-07-14 — Phase 4: Analytics modules
 
 **Repo state at start:** Phase 3 core modules, commit `3f32548`.

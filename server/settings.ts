@@ -15,6 +15,10 @@ export const SETTING_KEYS = [
   'key.finnhub',
   'key.alphavantage',
   'key.fred',
+  'learn.onboarded',
+  'learn.studentmode',
+  'learn.progress',
+  'learn.streak',
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];

@@ -7,7 +7,9 @@ import { Chart } from './Chart';
 import { Commodities } from './Commodities';
 import { Fundamentals } from './Fundamentals';
 import { Fx } from './Fx';
+import { Glossary } from './Glossary';
 import { Help } from './Help';
+import { Learn } from './Learn';
 import { Monitor } from './Monitor';
 import { News } from './News';
 import { Notes } from './Notes';
@@ -37,4 +39,6 @@ export const MODULES: Record<ModuleId, ComponentType<{ tab: Tab }>> = {
   statements: Statements,
   screener: Screener,
   peers: Peers,
+  learn: Learn,
+  glossary: Glossary,
 };

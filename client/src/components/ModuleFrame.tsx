@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { MODULE_COMMAND } from '../commands/registry';
+import { EXPLAINERS } from '../config/explainers';
+import { useStudent } from '../state/student';
 import type { Tab } from '../state/workspace';
 
 /** Standard chrome around every module: title row + body. */
@@ -13,6 +15,7 @@ export function ModuleFrame({
   children: ReactNode;
 }) {
   const def = MODULE_COMMAND[tab.moduleId];
+  const { studentMode } = useStudent();
   return (
     <section className="module">
       <header className="module-head">
@@ -22,6 +25,7 @@ export function ModuleFrame({
         <span className="spacer" />
         {toolbar}
       </header>
+      {studentMode && <div className="explainer">💡 {EXPLAINERS[tab.moduleId]}</div>}
       <div className="module-body">{children}</div>
     </section>
   );

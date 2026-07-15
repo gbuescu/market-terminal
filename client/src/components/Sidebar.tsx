@@ -32,8 +32,12 @@ const SECTIONS: { label: string; items: CommandDef[] }[] = [
     items: [MODULE_COMMAND.watchlist, MODULE_COMMAND.alerts, MODULE_COMMAND.notes],
   },
   {
+    label: 'LEARNING',
+    items: [MODULE_COMMAND.learn, MODULE_COMMAND.glossary, MODULE_COMMAND.help],
+  },
+  {
     label: 'SYSTEM',
-    items: [MODULE_COMMAND.settings, MODULE_COMMAND.help],
+    items: [MODULE_COMMAND.settings],
   },
 ];
 

@@ -21,7 +21,9 @@ export type ModuleId =
   | 'fundamentals'
   | 'statements'
   | 'screener'
-  | 'peers';
+  | 'peers'
+  | 'learn'
+  | 'glossary';
 
 export interface CommandDef {
   /** Primary mnemonic, uppercase, e.g. 'GP' */
@@ -186,6 +188,26 @@ export const COMMANDS: readonly CommandDef[] = [
     takesSymbol: 'optional',
     keywords: ['relative', 'value', 'comparable', 'versus'],
     examples: ['RV', 'AAPL RV'],
+  },
+  {
+    mnemonic: 'LEARN',
+    aliases: ['TOUR', 'TUTORIAL', 'STUDENT'],
+    name: 'Learning Center',
+    description: 'Guided tour, mnemonic trainer, student mode toggle',
+    moduleId: 'learn',
+    takesSymbol: 'none',
+    keywords: ['onboarding', 'training', 'practice', 'quiz', 'beginner'],
+    examples: ['LEARN'],
+  },
+  {
+    mnemonic: 'GLOS',
+    aliases: ['GLOSSARY', 'DEFINE', 'DICT'],
+    name: 'Finance Glossary',
+    description: 'Concepts explained, cross-linked into the terminal',
+    moduleId: 'glossary',
+    takesSymbol: 'optional',
+    keywords: ['definition', 'terms', 'concepts', 'what is', 'meaning'],
+    examples: ['GLOS', 'BETA GLOS'],
   },
   {
     mnemonic: 'SET',
