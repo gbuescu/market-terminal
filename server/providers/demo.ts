@@ -7,12 +7,21 @@
 import type {
   AssetClass,
   Candle,
+  DividendRow,
+  EarningsEvent,
+  EarningsRow,
   EcoEvent,
   Fundamentals,
+  HoldingRow,
+  InsiderTx,
+  IpoEvent,
   NewsItem,
   Quote,
   Range,
+  RatingsPeriod,
   Series,
+  ShortInterestRow,
+  StatementPeriodicity,
   Statements,
   StatementType,
   SymbolInfo,
@@ -313,14 +322,20 @@ const STATEMENT_ITEMS: Record<StatementType, string[]> = {
   cashflow: ['Operating Cash Flow', 'Capital Expenditure', 'Free Cash Flow', 'Dividends Paid'],
 };
 
-function demoStatements(symbol: string, type: StatementType): Statements {
+function demoStatements(
+  symbol: string,
+  type: StatementType,
+  periodicity: StatementPeriodicity,
+): Statements {
   const s = lookup(symbol);
-  const r = rng(hash(`${symbol}:statements`));
+  const r = rng(hash(`${symbol}:statements:${periodicity}`));
   const f = demoFundamentals(symbol);
-  const revenue0 = (f.marketCap ?? 5e10) * pick(r, 0.15, 0.6);
-  const growth = pick(r, 0.03, 0.16, 3);
+  const annualRev = (f.marketCap ?? 5e10) * pick(r, 0.15, 0.6);
+  const revenue0 = periodicity === 'annual' ? annualRev : annualRev / 4;
+  const growth = pick(r, 0.03, 0.16, 3) / (periodicity === 'annual' ? 1 : 4);
   const year = new Date().getFullYear();
-  const periods = [0, 1, 2, 3].map((back) => {
+  const backs = periodicity === 'annual' ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5, 6, 7];
+  const periods = backs.map((back) => {
     const rev = revenue0 / (1 + growth) ** back;
     const gross = rev * ((f.grossMarginTTM ?? 40) / 100) * pick(r, 0.96, 1.04);
     const op = rev * ((f.operatingMarginTTM ?? 20) / 100) * pick(r, 0.94, 1.06);
@@ -353,9 +368,188 @@ function demoStatements(symbol: string, type: StatementType): Statements {
         'Dividends Paid': f.dividendYield ? -Math.round(net * pick(r, 0.15, 0.5)) : 0,
       };
     }
-    return { period: `${year - 1 - back}-12-31`, values };
+    if (periodicity === 'annual') return { period: `${year - 1 - back}-12-31`, values };
+    const q = new Date();
+    q.setMonth(q.getMonth() - 3 * (back + 1));
+    return { period: q.toISOString().slice(0, 10), values };
   });
-  return { symbol, type, currency: s.currency, lineItems: STATEMENT_ITEMS[type], periods };
+  return {
+    symbol,
+    type,
+    periodicity,
+    currency: s.currency,
+    lineItems: STATEMENT_ITEMS[type],
+    periods,
+  };
+}
+
+// ---------- research content (Phase 8) ----------
+
+const INSIDER_NAMES = [
+  'Cook Timothy D',
+  'Rivera Elena',
+  'Okafor Chidi',
+  'Lindqvist Maja',
+  'Tanaka Hiro',
+  'Meyer Johannes',
+];
+const TX_CODES = ['P', 'S', 'S', 'A', 'S', 'P'] as const;
+
+function demoInsiders(symbol: string): InsiderTx[] {
+  const r = rng(hash(`${symbol}:insiders`));
+  const price = demoPrice(symbol, Date.now());
+  return INSIDER_NAMES.map((name, i) => {
+    const daysAgo = Math.floor(pick(r, 3, 120, 0));
+    const code = TX_CODES[i];
+    const magnitude = Math.floor(pick(r, 2_000, 120_000, 0));
+    return {
+      name,
+      change: code === 'S' ? -magnitude : magnitude,
+      sharesHeld: Math.floor(pick(r, 50_000, 3_000_000, 0)),
+      price: round(price * pick(r, 0.85, 1.1), 2),
+      date: new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10),
+      code,
+    };
+  }).sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+function demoRatings(symbol: string): RatingsPeriod[] {
+  const r = rng(hash(`${symbol}:ratings`));
+  const analysts = Math.floor(pick(r, 18, 45, 0));
+  return [0, 1, 2, 3].map((back) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - back);
+    const bullish = pick(r, 0.3, 0.7);
+    const strongBuy = Math.floor(analysts * bullish * 0.4);
+    const buy = Math.floor(analysts * bullish * 0.6);
+    const sell = Math.floor(analysts * (1 - bullish) * 0.25);
+    const strongSell = Math.floor(analysts * (1 - bullish) * 0.08);
+    return {
+      period: `${d.toISOString().slice(0, 7)}-01`,
+      strongBuy,
+      buy,
+      hold: Math.max(0, analysts - strongBuy - buy - sell - strongSell),
+      sell,
+      strongSell,
+    };
+  });
+}
+
+function demoEarnings(symbol: string): EarningsRow[] {
+  const r = rng(hash(`${symbol}:earnings`));
+  const baseEps = pick(r, 0.4, 4.5);
+  return [0, 1, 2, 3, 4, 5, 6, 7].map((back) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3 * (back + 1));
+    const estimate = round(baseEps * (1 - back * 0.02) * pick(r, 0.95, 1.05), 2);
+    const surprise = pick(r, -8, 12, 1);
+    return {
+      period: d.toISOString().slice(0, 10),
+      epsActual: round(estimate * (1 + surprise / 100), 2),
+      epsEstimate: estimate,
+      surprisePct: surprise,
+    };
+  });
+}
+
+function demoEarningsCalendar(): EarningsEvent[] {
+  const syms = ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'TSLA', 'JPM', 'XOM', 'ORCL'];
+  return syms.map((symbol, i) => {
+    const r = rng(hash(`${symbol}:erncal`));
+    return {
+      symbol,
+      date: new Date(Date.now() + (i + 1) * 86_400_000).toISOString().slice(0, 10),
+      hour: i % 2 === 0 ? 'amc' : 'bmo',
+      epsEstimate: pick(r, 0.5, 4, 2),
+    };
+  });
+}
+
+const IPO_NAMES = [
+  ['Northwind Robotics', 'NWRB'],
+  ['Helios Grid Storage', 'HGRD'],
+  ['Bluewater Biologics', 'BLWB'],
+  ['Quantfleet Logistics', 'QFLT'],
+  ['Aster Materials', 'ASTM'],
+] as const;
+
+function demoIpoCalendar(): IpoEvent[] {
+  return IPO_NAMES.map(([name, symbol], i) => {
+    const r = rng(hash(`${symbol}:ipo`));
+    const lo = pick(r, 12, 30, 0);
+    return {
+      symbol,
+      name,
+      date: new Date(Date.now() + (i * 4 + 2) * 86_400_000).toISOString().slice(0, 10),
+      exchange: i % 2 === 0 ? 'NASDAQ' : 'NYSE',
+      priceRange: `${lo}-${lo + 3}`,
+      shares: Math.floor(pick(r, 5e6, 40e6, 0)),
+      status: 'expected',
+    };
+  });
+}
+
+function demoDividends(symbol: string): DividendRow[] {
+  const f = demoFundamentals(symbol);
+  if (!f.dividendYield) throw new Error(`${symbol} pays no dividend (demo)`);
+  const price = demoPrice(symbol, Date.now());
+  const quarterly = (price * (f.dividendYield / 100)) / 4;
+  return [0, 1, 2, 3, 4, 5, 6, 7].map((back) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3 * back - 1);
+    const growthSteps = Math.floor(back / 4);
+    return {
+      date: d.toISOString().slice(0, 10),
+      amount: round(quarterly / (1 + 0.06 * growthSteps) ** 1, 3),
+      currency: 'USD',
+    };
+  });
+}
+
+const HOLDER_NAMES = [
+  'Vanguard Group Inc',
+  'BlackRock Inc',
+  'State Street Corp',
+  'Fidelity (FMR LLC)',
+  'Geode Capital Management',
+  'T. Rowe Price Associates',
+];
+
+function demoHoldings(symbol: string): HoldingRow[] {
+  const r = rng(hash(`${symbol}:holdings`));
+  const f = demoFundamentals(symbol);
+  const cap = f.marketCap ?? 5e10;
+  let pctLeft = pick(r, 55, 75);
+  return HOLDER_NAMES.map((holder, i) => {
+    const pct = round(pctLeft * pick(r, 0.15, 0.3), 2);
+    pctLeft -= pct;
+    const value = Math.round((cap * pct) / 100);
+    const d = new Date();
+    d.setMonth(d.getMonth() - ((i % 3) + 1));
+    return {
+      holder,
+      value,
+      pctOut: pct,
+      shares: Math.floor(value / demoPrice(symbol, Date.now())),
+      reportDate: d.toISOString().slice(0, 10),
+    };
+  });
+}
+
+function demoShortInterest(symbol: string): ShortInterestRow[] {
+  const r = rng(hash(`${symbol}:short`));
+  const base = pick(r, 0.8, 6);
+  return [0, 1, 2, 3, 4, 5].map((back) => {
+    const d = new Date();
+    d.setDate(d.getDate() - back * 14 - 3);
+    const pct = round(base * pick(r, 0.85, 1.15), 2);
+    return {
+      date: d.toISOString().slice(0, 10),
+      pctFloat: pct,
+      shortInterest: Math.floor(pick(r, 5e6, 90e6, 0)),
+      daysToCover: round(pct * pick(r, 0.4, 1.2), 1),
+    };
+  });
 }
 
 export const demoProvider: Provider = {
@@ -363,9 +557,26 @@ export const demoProvider: Provider = {
   name: 'Demo / seed data',
   kind: 'demo',
   delaySeconds: 0,
+  freshness: 'synthetic',
   note: 'Synthetic deterministic data. Not real market data — for offline use and learning.',
   ready: () => true,
-  capabilities: ['search', 'quotes', 'series', 'news', 'calendar', 'fundamentals', 'statements'],
+  capabilities: [
+    'search',
+    'quotes',
+    'series',
+    'news',
+    'calendar',
+    'fundamentals',
+    'statements',
+    'insiders',
+    'ratings',
+    'earnings',
+    'earningscal',
+    'ipo',
+    'dividends',
+    'holdings',
+    'short',
+  ],
   search: async (query: string): Promise<SymbolInfo[]> => {
     const q = query.trim().toUpperCase();
     return Object.entries(UNIVERSE)
@@ -384,5 +595,14 @@ export const demoProvider: Provider = {
   news: async (symbol?: string) => demoNews(symbol),
   calendar: async () => demoCalendar(),
   fundamentals: async (symbol: string) => demoFundamentals(symbol),
-  statements: async (symbol: string, type: StatementType) => demoStatements(symbol, type),
+  statements: async (symbol: string, type: StatementType, periodicity: StatementPeriodicity) =>
+    demoStatements(symbol, type, periodicity),
+  insiders: async (symbol: string) => demoInsiders(symbol),
+  ratings: async (symbol: string) => demoRatings(symbol),
+  earnings: async (symbol: string) => demoEarnings(symbol),
+  earningsCalendar: async () => demoEarningsCalendar(),
+  ipoCalendar: async () => demoIpoCalendar(),
+  dividends: async (symbol: string) => demoDividends(symbol),
+  holdings: async (symbol: string) => demoHoldings(symbol),
+  shortInterest: async (symbol: string) => demoShortInterest(symbol),
 };

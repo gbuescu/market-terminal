@@ -12,9 +12,18 @@ export const SETTING_KEYS = [
   'provider.calendar',
   'provider.fundamentals',
   'provider.statements',
+  'provider.insiders',
+  'provider.ratings',
+  'provider.earnings',
+  'provider.earningscal',
+  'provider.ipo',
+  'provider.dividends',
+  'provider.holdings',
+  'provider.short',
   'key.finnhub',
   'key.alphavantage',
   'key.fred',
+  'key.marketaux',
   'learn.onboarded',
   'learn.studentmode',
   'learn.progress',
@@ -31,7 +40,14 @@ export function getSetting(key: SettingKey): string | null {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as
     | { value: string }
     | undefined;
-  return row?.value ?? null;
+  if (row?.value) return row.value;
+  // API keys may also come from env (loaded via --env-file-if-exists=.env);
+  // the settings table wins when both exist. key.finnhub -> MKT_KEY_FINNHUB.
+  if (key.startsWith('key.')) {
+    const env = process.env[`MKT_KEY_${key.slice(4).toUpperCase()}`];
+    if (env?.trim()) return env.trim();
+  }
+  return null;
 }
 
 export function setSetting(key: SettingKey, value: string): void {

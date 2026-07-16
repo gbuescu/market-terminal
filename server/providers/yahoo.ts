@@ -14,6 +14,7 @@ import type {
   Series,
   SymbolInfo,
 } from '../../shared/types.ts';
+import { spendRequest } from '../budget.ts';
 import { type Provider, Unsupported } from './types.ts';
 
 const BASE = 'https://query1.finance.yahoo.com';
@@ -25,6 +26,7 @@ const HEADERS = {
 };
 
 async function getJson(url: string): Promise<unknown> {
+  spendRequest('yahoo');
   const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`yahoo HTTP ${res.status}`);
   return res.json();
@@ -120,7 +122,8 @@ export const yahooProvider: Provider = {
   name: 'Yahoo Finance (unofficial)',
   kind: 'live',
   delaySeconds: 900,
-  note: 'Undocumented public API; quotes delayed up to ~15 min depending on exchange; may break or rate-limit.',
+  freshness: 'delayed',
+  note: 'Undocumented public API; quotes delayed up to ~15 min depending on exchange; may break or rate-limit. Budgeted 60 req/min (politeness).',
   ready: () => true,
   capabilities: ['search', 'quotes', 'series', 'news'],
 

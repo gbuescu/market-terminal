@@ -10,6 +10,8 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { startAlertEngine } from './alerts.ts';
 import { runMigrations } from './db.ts';
 import { domain } from './domain.ts';
+import { finnhubKey } from './providers/finnhub.ts';
+import { initLiveQuotes } from './providers/livequotes.ts';
 import { api } from './routes.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,6 +38,7 @@ app.use('/api', (err: unknown, _req: Request, res: Response, _next: NextFunction
 });
 
 startAlertEngine();
+initLiveQuotes(finnhubKey);
 
 // Serve the built client when it exists (production mode). In dev, Vite
 // serves the client on :5173 and proxies /api here instead.

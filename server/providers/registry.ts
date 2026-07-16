@@ -10,27 +10,48 @@ import type { ProviderInfo } from '../../shared/types.ts';
 import { getSetting, isSettingKey } from '../settings.ts';
 import { alphaVantageProvider } from './alphavantage.ts';
 import { demoProvider } from './demo.ts';
+import { edgarProvider } from './edgar.ts';
 import { finnhubProvider } from './finnhub.ts';
+import { fredProvider } from './fred.ts';
+import { marketauxProvider } from './marketaux.ts';
 import type { Capability, Provider } from './types.ts';
 import { yahooProvider } from './yahoo.ts';
 
 export const PROVIDERS: readonly Provider[] = [
   yahooProvider,
   finnhubProvider,
+  edgarProvider,
+  marketauxProvider,
+  fredProvider,
   alphaVantageProvider,
   demoProvider,
 ];
 
 const DEFAULT_ORDER: Record<Capability, string[]> = {
   search: ['yahoo', 'demo'],
+  // Yahoo first: it covers indices/FX/futures that finnhub free does not.
+  // Force 'finnhub' in SET for near-real-time (+websocket) US equities.
   quotes: ['yahoo', 'finnhub', 'demo'],
   series: ['yahoo', 'demo'],
-  news: ['yahoo', 'demo'],
-  calendar: ['demo'],
+  // marketaux (keyed) adds entity sentiment; yahoo remains the keyless default.
+  news: ['marketaux', 'yahoo', 'demo'],
+  calendar: ['fred', 'demo'],
   // Keyed providers first when ready; demo otherwise. Yahoo's fundamentals
   // endpoints are crumb-gated (fragile scraping) — deliberately not used.
   fundamentals: ['finnhub', 'alphavantage', 'demo'],
-  statements: ['alphavantage', 'demo'],
+  // EDGAR: official, keyless, unlimited — now the statements default.
+  statements: ['edgar', 'alphavantage', 'demo'],
+  insiders: ['finnhub', 'demo'],
+  ratings: ['finnhub', 'demo'],
+  earnings: ['finnhub', 'demo'],
+  earningscal: ['finnhub', 'demo'],
+  ipo: ['finnhub', 'demo'],
+  dividends: ['edgar', 'demo'],
+  // No free live source exists for 13F holdings or short interest.
+  // Deliberately NO default provider: auto = honest "unavailable" error.
+  // Forcing 'demo' in SET shows clearly-labeled synthetic data instead.
+  holdings: [],
+  short: [],
 };
 
 function byId(id: string): Provider | undefined {
@@ -65,6 +86,7 @@ export function describeProviders(): ProviderInfo[] {
     ready: p.ready(),
     capabilities: [...p.capabilities],
     delaySeconds: p.delaySeconds,
+    freshness: p.freshness,
     note: p.note,
   }));
 }

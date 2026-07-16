@@ -82,6 +82,14 @@ const migrations: string[] = [
      value TEXT NOT NULL,
      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
    );`,
+  // 005 — outbound request log per provider, for free-tier budgeting and the
+  // usage panel in SET (see server/budget.ts). Pruned periodically.
+  `CREATE TABLE request_log (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     provider TEXT NOT NULL,
+     ts INTEGER NOT NULL
+   );
+   CREATE INDEX idx_request_log ON request_log (provider, ts);`,
 ];
 
 export function getMeta(key: string): string | null {

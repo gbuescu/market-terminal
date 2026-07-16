@@ -7,9 +7,11 @@
 import type {
   Fundamentals,
   StatementPeriod,
+  StatementPeriodicity,
   Statements,
   StatementType,
 } from '../../shared/types.ts';
+import { spendRequest } from '../budget.ts';
 import { getSetting } from '../settings.ts';
 import type { Provider } from './types.ts';
 
@@ -22,6 +24,7 @@ function key(): string | null {
 async function getJson(params: string): Promise<Record<string, unknown>> {
   const k = key();
   if (!k) throw new Error('alpha vantage API key not configured');
+  spendRequest('alphavantage');
   const res = await fetch(`${BASE}?${params}&apikey=${encodeURIComponent(k)}`, {
     signal: AbortSignal.timeout(10_000),
   });
@@ -72,7 +75,8 @@ export const alphaVantageProvider: Provider = {
   name: 'Alpha Vantage',
   kind: 'live',
   delaySeconds: 86_400,
-  note: 'Free tier: 25 requests/day — responses cached aggressively. Requires API key (SET).',
+  freshness: 'eod',
+  note: 'Free tier: 25 requests/day (budgeted 20) — responses cached aggressively. Requires API key (SET).',
   ready: () => key() !== null,
   capabilities: ['fundamentals', 'statements'],
 
@@ -103,17 +107,21 @@ export const alphaVantageProvider: Provider = {
     };
   },
 
-  statements: async (symbol: string, type: StatementType): Promise<Statements> => {
+  statements: async (
+    symbol: string,
+    type: StatementType,
+    periodicity: StatementPeriodicity,
+  ): Promise<Statements> => {
     const json = await getJson(
       `function=${FUNCTION_BY_TYPE[type]}&symbol=${encodeURIComponent(symbol)}`,
     );
-    const reports = json.annualReports;
+    const reports = periodicity === 'annual' ? json.annualReports : json.quarterlyReports;
     if (!Array.isArray(reports) || reports.length === 0) {
-      throw new Error(`no ${type} statement for ${symbol}`);
+      throw new Error(`no ${periodicity} ${type} statement for ${symbol}`);
     }
     const items = LINE_ITEMS[type];
     const periods: StatementPeriod[] = (reports as Record<string, unknown>[])
-      .slice(0, 4)
+      .slice(0, periodicity === 'annual' ? 4 : 8)
       .map((rep) => {
         const values: Record<string, number | null> = {};
         for (const [label, field] of items) {
@@ -127,11 +135,12 @@ export const alphaVantageProvider: Provider = {
           values,
         };
       });
+    const first = (reports as Record<string, unknown>[])[0];
     return {
       symbol,
       type,
-      currency:
-        typeof reports[0]?.reportedCurrency === 'string' ? reports[0].reportedCurrency : undefined,
+      periodicity,
+      currency: typeof first?.reportedCurrency === 'string' ? first.reportedCurrency : undefined,
       lineItems: items.map(([label]) => label),
       periods,
     };

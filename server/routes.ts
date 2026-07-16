@@ -1,8 +1,10 @@
-import { Router } from 'express';
-import type { Fundamentals, Range, StatementType } from '../shared/types.ts';
+import { type Request, type Response, Router } from 'express';
+import type { Fundamentals, Range, StatementPeriodicity, StatementType } from '../shared/types.ts';
 import { RANGES } from '../shared/types.ts';
+import { usageReport } from './budget.ts';
 import { type CacheHit, getOrFetch } from './cache.ts';
 import { db, getMeta } from './db.ts';
+import { liveStatus } from './providers/livequotes.ts';
 import { describeProviders, pickProviders } from './providers/registry.ts';
 import { type Capability, type Provider, Unsupported } from './providers/types.ts';
 import { isSettingKey, maskedSettings, setSetting } from './settings.ts';
@@ -67,7 +69,12 @@ async function serveData<T>(
 ): Promise<{ status: number; body: unknown }> {
   const providers = pickProviders(cap);
   if (providers.length === 0) {
-    return { status: 503, body: { error: `no provider available for ${cap}` } };
+    return {
+      status: 503,
+      body: {
+        error: `no free-tier provider exists for ${cap} — force 'demo' in SET for labeled synthetic data`,
+      },
+    };
   }
   let lastError: unknown = null;
   for (const p of providers) {
@@ -75,6 +82,9 @@ async function serveData<T>(
       const hit: CacheHit<T> = await getOrFetch(`${cap}:${p.id}:${cacheKeyPart}`, ttlMs, () =>
         fn(p),
       );
+      // A cached payload is only as fresh as its fetch time — never label a
+      // cache hit 'realtime'.
+      const freshness = hit.fromCache && p.freshness === 'realtime' ? 'near-realtime' : p.freshness;
       return {
         status: 200,
         body: {
@@ -82,6 +92,7 @@ async function serveData<T>(
           source: p.id,
           asOf: new Date(hit.fetchedAt).toISOString(),
           delayed: p.delaySeconds > 60,
+          freshness,
           fromCache: hit.fromCache,
           stale: hit.stale,
           demo: p.kind === 'demo',
@@ -190,16 +201,87 @@ api.get('/fundamentals', async (req, res) => {
 api.get('/statements', async (req, res) => {
   const symbols = parseSymbols(req.query.symbol, 1);
   const type = typeof req.query.type === 'string' ? req.query.type : '';
+  const periodicity = req.query.period === 'quarterly' ? 'quarterly' : 'annual';
   if (!symbols || !['income', 'balance', 'cashflow'].includes(type)) {
     res.status(400).json({ error: 'symbol and type (income|balance|cashflow) required' });
     return;
   }
-  // 7-day TTL: annual statements barely move and Alpha Vantage allows 25 req/day.
-  const r = await serveData('statements', `${symbols[0]}:${type}`, 7 * 86_400_000, (p) => {
+  // Long TTLs: statements move on filing cadence; EDGAR facts cache 6h anyway.
+  const ttl = periodicity === 'annual' ? 7 * 86_400_000 : 86_400_000;
+  const r = await serveData('statements', `${symbols[0]}:${type}:${periodicity}`, ttl, (p) => {
     if (!p.statements) throw new Unsupported();
-    return p.statements(symbols[0], type as StatementType);
+    return p.statements(symbols[0], type as StatementType, periodicity as StatementPeriodicity);
   });
   res.status(r.status).json(r.body);
+});
+
+// ---------- research content (Phase 8) ----------
+
+function symbolRoute(
+  cap: Capability,
+  ttlMs: number,
+  call: (p: Provider, symbol: string) => Promise<unknown> | undefined,
+) {
+  return async (req: Request, res: Response) => {
+    const symbols = parseSymbols(req.query.symbol, 1);
+    if (!symbols) {
+      res.status(400).json({ error: 'symbol required' });
+      return;
+    }
+    const r = await serveData(cap, symbols[0], ttlMs, (p) => {
+      const promise = call(p, symbols[0]);
+      if (!promise) throw new Unsupported();
+      return promise;
+    });
+    res.status(r.status).json(r.body);
+  };
+}
+
+api.get(
+  '/insiders',
+  symbolRoute('insiders', 21_600_000, (p, s) => p.insiders?.(s)),
+);
+api.get(
+  '/ratings',
+  symbolRoute('ratings', 86_400_000, (p, s) => p.ratings?.(s)),
+);
+api.get(
+  '/earnings',
+  symbolRoute('earnings', 86_400_000, (p, s) => p.earnings?.(s)),
+);
+api.get(
+  '/dividends',
+  symbolRoute('dividends', 86_400_000, (p, s) => p.dividends?.(s)),
+);
+api.get(
+  '/holdings',
+  symbolRoute('holdings', 86_400_000, (p, s) => p.holdings?.(s)),
+);
+api.get(
+  '/short',
+  symbolRoute('short', 86_400_000, (p, s) => p.shortInterest?.(s)),
+);
+
+api.get('/earnings-calendar', async (_req, res) => {
+  const r = await serveData('earningscal', '*', 21_600_000, (p) => {
+    if (!p.earningsCalendar) throw new Unsupported();
+    return p.earningsCalendar();
+  });
+  res.status(r.status).json(r.body);
+});
+
+api.get('/ipo-calendar', async (_req, res) => {
+  const r = await serveData('ipo', '*', 21_600_000, (p) => {
+    if (!p.ipoCalendar) throw new Unsupported();
+    return p.ipoCalendar();
+  });
+  res.status(r.status).json(r.body);
+});
+
+// ---------- usage / budgeting ----------
+
+api.get('/usage', (_req, res) => {
+  res.json({ providers: usageReport(), live: liveStatus() });
 });
 
 /** Large-cap US universe the screener evaluates. Extend deliberately. */

@@ -4,14 +4,22 @@
  * (CLAUDE.md: label delayed vs real-time honestly; demo data clearly marked).
  */
 
+/**
+ * Data freshness tier. NEVER claim 'realtime' unless the payload actually
+ * came from a live feed (e.g. websocket trades). 'official' = regulatory
+ * source (SEC/Fed) — authoritative but published on a filing cadence.
+ */
+export type Freshness = 'realtime' | 'near-realtime' | 'delayed' | 'eod' | 'official' | 'synthetic';
+
 export interface Envelope<T> {
   data: T;
   /** Provider id, e.g. 'yahoo', 'demo' */
   source: string;
   /** ISO timestamp the payload was fetched/generated */
   asOf: string;
-  /** Provider-level: data may lag real time */
+  /** Provider-level: data may lag real time (kept for back-compat; see freshness) */
   delayed: boolean;
+  freshness: Freshness;
   fromCache: boolean;
   /** Served from an expired cache entry because a refresh failed */
   stale: boolean;
@@ -76,6 +84,13 @@ export interface Series {
   candles: Candle[];
 }
 
+export interface NewsEntity {
+  symbol: string;
+  name?: string;
+  /** -1..1 where negative is bearish, when the source provides it */
+  sentiment?: number;
+}
+
 export interface NewsItem {
   id: string;
   headline: string;
@@ -83,6 +98,11 @@ export interface NewsItem {
   url?: string;
   publishedAt: string;
   symbols?: string[];
+  /** Article-level sentiment -1..1, when the source provides it */
+  sentiment?: number;
+  /** Tagged entities with per-entity sentiment, when available */
+  entities?: NewsEntity[];
+  snippet?: string;
 }
 
 export interface EcoEvent {
@@ -104,6 +124,7 @@ export interface ProviderInfo {
   ready: boolean;
   capabilities: string[];
   delaySeconds: number;
+  freshness: Freshness;
   note?: string;
 }
 
@@ -148,13 +169,96 @@ export interface StatementPeriod {
   values: Record<string, number | null>;
 }
 
+export type StatementPeriodicity = 'annual' | 'quarterly';
+
 export interface Statements {
   symbol: string;
   type: StatementType;
+  periodicity: StatementPeriodicity;
   currency?: string;
   /** ordered labels; every period.values is keyed by these */
   lineItems: string[];
   periods: StatementPeriod[];
+}
+
+// ---------- research content (Phase 8) ----------
+
+export interface InsiderTx {
+  name: string;
+  /** signed share change: negative = disposal */
+  change: number;
+  sharesHeld?: number;
+  price?: number;
+  date: string;
+  /** SEC transaction code, e.g. P (purchase), S (sale), A (award) */
+  code?: string;
+}
+
+export interface RatingsPeriod {
+  period: string;
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+}
+
+export interface EarningsRow {
+  period: string;
+  epsActual: number | null;
+  epsEstimate: number | null;
+  surprisePct: number | null;
+}
+
+export interface EarningsEvent {
+  symbol: string;
+  date: string;
+  /** bmo = before open, amc = after close */
+  hour?: string;
+  epsEstimate?: number;
+  revenueEstimate?: number;
+}
+
+export interface IpoEvent {
+  symbol?: string;
+  name: string;
+  date: string;
+  exchange?: string;
+  priceRange?: string;
+  shares?: number;
+  status?: string;
+}
+
+export interface DividendRow {
+  /** period end / declaration date */
+  date: string;
+  /** per-share amount declared for the period */
+  amount: number;
+  currency?: string;
+}
+
+export interface HoldingRow {
+  holder: string;
+  shares?: number;
+  value?: number;
+  pctOut?: number;
+  reportDate?: string;
+}
+
+export interface ShortInterestRow {
+  date: string;
+  shortInterest?: number;
+  pctFloat?: number;
+  daysToCover?: number;
+}
+
+export interface ProviderUsage {
+  provider: string;
+  lastMinute: number;
+  lastHour: number;
+  today: number;
+  perMinuteLimit: number | null;
+  perDayLimit: number | null;
 }
 
 // ---------- persisted workspace objects (Phase 3) ----------

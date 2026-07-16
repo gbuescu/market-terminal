@@ -1,10 +1,20 @@
 import type {
+  DividendRow,
+  EarningsEvent,
+  EarningsRow,
   EcoEvent,
+  Freshness,
   Fundamentals,
+  HoldingRow,
+  InsiderTx,
+  IpoEvent,
   NewsItem,
   Quote,
   Range,
+  RatingsPeriod,
   Series,
+  ShortInterestRow,
+  StatementPeriodicity,
   Statements,
   StatementType,
   SymbolInfo,
@@ -17,7 +27,15 @@ export type Capability =
   | 'news'
   | 'calendar'
   | 'fundamentals'
-  | 'statements';
+  | 'statements'
+  | 'insiders'
+  | 'ratings'
+  | 'earnings'
+  | 'earningscal'
+  | 'ipo'
+  | 'dividends'
+  | 'holdings'
+  | 'short';
 
 /**
  * Thrown by an adapter when it cannot serve a *shape* of request (e.g.
@@ -33,6 +51,8 @@ export interface Provider {
   kind: 'demo' | 'live';
   /** Typical data delay in seconds (0 = near-real-time). Used for labeling. */
   delaySeconds: number;
+  /** Honest freshness tier shown in every DataBadge. */
+  freshness: Freshness;
   note?: string;
   /** Whether the provider can serve right now (e.g. has its API key). */
   ready(): boolean;
@@ -43,5 +63,17 @@ export interface Provider {
   news?(symbol?: string): Promise<NewsItem[]>;
   calendar?(): Promise<EcoEvent[]>;
   fundamentals?(symbol: string): Promise<Fundamentals>;
-  statements?(symbol: string, type: StatementType): Promise<Statements>;
+  statements?(
+    symbol: string,
+    type: StatementType,
+    periodicity: StatementPeriodicity,
+  ): Promise<Statements>;
+  insiders?(symbol: string): Promise<InsiderTx[]>;
+  ratings?(symbol: string): Promise<RatingsPeriod[]>;
+  earnings?(symbol: string): Promise<EarningsRow[]>;
+  earningsCalendar?(): Promise<EarningsEvent[]>;
+  ipoCalendar?(): Promise<IpoEvent[]>;
+  dividends?(symbol: string): Promise<DividendRow[]>;
+  holdings?(symbol: string): Promise<HoldingRow[]>;
+  shortInterest?(symbol: string): Promise<ShortInterestRow[]>;
 }
