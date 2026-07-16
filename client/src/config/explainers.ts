@@ -40,4 +40,21 @@ export const EXPLAINERS: Record<ModuleId, string> = {
     'Your learning hub: the guided tour teaches the terminal, the trainer drills command mnemonics, and this student-mode toggle controls these explainer strips.',
   glossary:
     'Finance concepts in plain English. Use the search box or category filters; "see it" links jump to where the concept lives in the terminal.',
+  insiders:
+    'Executives and directors must report their own-company trades. Clusters of open-market BUYs are the interesting signal; sales are often routine.',
+  ratings:
+    'What Wall Street analysts recommend, month by month. Watch the trend of the distribution, not any single label — analysts skew bullish.',
+  earnings:
+    'Companies report quarterly. The market reacts to the SURPRISE vs estimates, not the absolute number. bmo = before open, amc = after close.',
+  ipo: 'Companies going public. Price range and share count are set late in the process; expect volatility on debut day.',
+  dividends:
+    'Cash returned to shareholders per share, as declared in SEC filings. Steady growth signals confidence; a cut is a loud warning.',
+  holdings:
+    'Large funds must disclose US holdings quarterly (13F filings). No free aggregated source exists — this module is honest about that.',
+  short:
+    'Shares sold short as % of float. High short interest = crowded bearish bet (and squeeze fuel). No free source — honest about that too.',
+  heatmap:
+    "Each tile is a sector of the S&P 500 (via SPDR ETFs), colored by today's move. One glance shows what kind of day the market is having.",
+  correlation:
+    'How assets move together (+1) or opposite (−1), from 6 months of daily returns. Low/negative correlation is what makes diversification work.',
 };

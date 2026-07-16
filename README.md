@@ -74,6 +74,23 @@ registry the parser uses — it can't drift out of date.
 complete · `Esc` close · `Alt+1…9` jump to tab · `Alt+PageUp/PageDown` cycle
 tabs · `Alt+W` close tab.
 
+## Free API keys (optional, unlock live research data)
+
+The terminal works with **zero keys**: Yahoo (delayed quotes/charts/news)
+and SEC EDGAR (official statements + dividends) are keyless, and everything
+else falls back to clearly-labeled demo data. Registering free keys unlocks:
+
+| Key | Unlocks | Sign up |
+|---|---|---|
+| **Finnhub** | near-real-time US quotes + live websocket trades, insider transactions (INS), analyst ratings (AR), earnings + calendar (ERN), IPO calendar (IPO) | finnhub.io/register |
+| **marketaux** | news with entity tagging + sentiment scores (N) | marketaux.com/register |
+| **FRED** | official US economic release calendar (ECO) | fredaccount.stlouisfed.org/apikeys |
+| **Alpha Vantage** | statements for non-US filers (FS backup) | alphavantage.co/support/#api-key |
+
+Add keys either in the app (`SET` → API KEYS) or via a `.env` file (copy
+`.env.example` to `.env` and fill in `MKT_KEY_*`; a value saved in SET wins).
+Free-tier request budgets are enforced automatically and shown live in `SET`.
+
 ## Data & honesty
 
 Every data panel shows source and freshness badges:

@@ -116,8 +116,32 @@ Extends the existing GP module; no architectural change, no new server code
 - [x] Bonus fix: deep-link to a view not in the saved layout now opens that
       view (previously the saved active tab silently won)
 
+## Phase 8 — Data expansion ✅ (2026-07-16, post-v1 enhancement)
+
+- [x] SEC EDGAR adapter (keyless, official): statements annual+quarterly
+      (multi-tag XBRL merge) + dividend history — now the statements default;
+      live-verified against Apple 10-K/10-Q
+- [x] Finnhub expansion: insiders, ratings, earnings+surprises, earnings
+      calendar, IPO calendar, websocket live trades (smart LRU subscriptions,
+      backoff reconnect) — key-gated, untested until a key is added
+- [x] marketaux (news + entity sentiment) and FRED (official US release
+      calendar) adapters — key-gated
+- [x] Request budgeting: request_log (migration 005) + per-provider budgets
+      under free-tier limits, stale-cache degradation, SET usage panel
+- [x] Freshness tiers end to end (REALTIME/NEAR-RT/DELAYED/EOD/OFFICIAL/
+      DEMO) — REALTIME only ever from the ws feed
+- [x] 9 new modules: INS, AR, ERN, IPO, DIV, HOLD, SI, HEAT (live sector
+      ETFs), CORR (live local correlation matrix)
+- [x] News: sentiment chips (article + entity), topic filters, snippets
+- [x] FS: ANNUAL/QTR toggle · .env.example + MKT_KEY_* env fallback ·
+      README key guide
+- [x] Honest gaps documented: 13F/short interest/transcripts/price targets/
+      splits/options IV have no free source — modules say so, never fake
+
 ## Enhancement backlog (unstarted)
 
-- Real economic-calendar/macro provider (FRED key slot already exists)
+- Alpaca IEX + Twelve Data backup adapters (deferred from Phase 8 — see
+  DATA_PROVIDERS decisions log)
+- AI daily digest per watchlist (needs a paid LLM key — ask first)
 - Drag-to-reorder tabs; split-pane workspaces
 - More screener metrics + saved screens; watchlist CSV import

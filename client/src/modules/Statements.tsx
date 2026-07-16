@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import type { Statements as StatementsDto, StatementType } from '../../../shared/types';
+import type {
+  StatementPeriodicity,
+  Statements as StatementsDto,
+  StatementType,
+} from '../../../shared/types';
 import { useEnvelope } from '../api/useData';
 import { DataBadge } from '../components/DataBadge';
 import { ExportButton } from '../components/ExportButton';
@@ -16,8 +20,11 @@ const TYPES: { id: StatementType; label: string }[] = [
 export function Statements({ tab }: { tab: Tab }) {
   const symbol = tab.symbol ?? null;
   const [type, setType] = useState<StatementType>('income');
+  const [period, setPeriod] = useState<StatementPeriodicity>('annual');
   const { state, refresh } = useEnvelope<StatementsDto>(
-    symbol ? `/api/statements?symbol=${encodeURIComponent(symbol)}&type=${type}` : null,
+    symbol
+      ? `/api/statements?symbol=${encodeURIComponent(symbol)}&type=${type}&period=${period}`
+      : null,
   );
 
   if (!symbol) {
@@ -64,6 +71,22 @@ export function Statements({ tab }: { tab: Tab }) {
               </button>
             ))}
           </span>
+          <span className="chart-toggles">
+            <button
+              type="button"
+              className={`range-btn${period === 'annual' ? ' range-btn-active' : ''}`}
+              onClick={() => setPeriod('annual')}
+            >
+              ANNUAL
+            </button>
+            <button
+              type="button"
+              className={`range-btn${period === 'quarterly' ? ' range-btn-active' : ''}`}
+              onClick={() => setPeriod('quarterly')}
+            >
+              QTR
+            </button>
+          </span>
           <button type="button" className="btn" onClick={refresh}>
             REFRESH
           </button>
@@ -78,7 +101,7 @@ export function Statements({ tab }: { tab: Tab }) {
           kind="error"
           title={`Statements unavailable for ${symbol}`}
           detail={state.message}
-          hint="Add an Alpha Vantage key in SET for reported statements, or force the demo provider."
+          hint="US filers come free from SEC EDGAR. Non-US symbols need an Alpha Vantage key in SET, or force the demo provider."
         />
       )}
       {s && (
@@ -86,7 +109,10 @@ export function Statements({ tab }: { tab: Tab }) {
           <table className="grid-table fs-table">
             <thead>
               <tr>
-                <th>Annual{s.currency ? ` (${s.currency})` : ''}</th>
+                <th>
+                  {s.periodicity === 'quarterly' ? 'Quarterly' : 'Annual'}
+                  {s.currency ? ` (${s.currency})` : ''}
+                </th>
                 {s.periods.map((p) => (
                   <th key={p.period} className="num">
                     {p.period.slice(0, 7)}

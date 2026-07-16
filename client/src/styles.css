@@ -1069,6 +1069,186 @@ a.news-headline:hover {
   letter-spacing: 0.05em;
 }
 
+/* ---------- research & data expansion (Phase 8) ---------- */
+
+.research-table {
+  max-width: 860px;
+}
+
+.badge-fresh-realtime {
+  color: var(--bg);
+  background: var(--up);
+  border-color: var(--up);
+  font-weight: 700;
+}
+
+.badge-fresh-near-realtime {
+  color: var(--up);
+  border-color: var(--up);
+}
+
+.badge-fresh-delayed {
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.badge-fresh-eod,
+.badge-fresh-official {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.badge-fresh-demo {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.senti-pos {
+  color: var(--up);
+  border-color: var(--up);
+}
+
+.senti-neg {
+  color: var(--down);
+  border-color: var(--down);
+}
+
+.senti-neu {
+  color: var(--text-dim);
+}
+
+.news-item-rich {
+  display: block;
+}
+
+.news-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.news-sub {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 2px 0 2px 104px;
+}
+
+.news-snippet {
+  max-width: 640px;
+}
+
+.ratings-consensus {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.ratings-label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.ratings-cell {
+  min-width: 180px;
+}
+
+.ratings-bar {
+  display: inline-flex;
+  width: 170px;
+  height: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--bg-raised);
+  vertical-align: middle;
+}
+
+.ratings-seg {
+  display: inline-block;
+  height: 100%;
+}
+
+.rb-sbuy {
+  background: var(--up);
+}
+
+.rb-buy {
+  background: rgb(46 204 113 / 55%);
+}
+
+.rb-hold {
+  background: var(--text-dim);
+}
+
+.rb-sell {
+  background: rgb(231 76 60 / 55%);
+}
+
+.rb-ssell {
+  background: var(--down);
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  max-width: 980px;
+}
+
+.heat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.heat-tile:hover {
+  border-color: var(--accent);
+}
+
+.heat-name {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+
+.heat-sym {
+  font-size: 10px;
+}
+
+.heat-pct {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.corr-table {
+  max-width: 860px;
+}
+
+.corr-table td,
+.corr-table th {
+  padding: 4px 8px;
+}
+
+.corr-head {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
+.corr-cell {
+  min-width: 58px;
+  text-align: center;
+}
+
 /* ---------- learning (tour, trainer, glossary, student mode) ---------- */
 
 .tag-student {

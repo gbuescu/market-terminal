@@ -1,17 +1,55 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { SettingsPayload } from '../../../shared/types';
+import type { ProviderUsage, SettingsPayload } from '../../../shared/types';
 import { getJson, putJson } from '../api/client';
 import { ModuleFrame, StateView } from '../components/ModuleFrame';
 import { useHealth } from '../state/health';
 import type { Tab } from '../state/workspace';
 
-const CAPABILITIES = ['search', 'quotes', 'series', 'news', 'calendar'] as const;
+const CAPABILITIES = [
+  'search',
+  'quotes',
+  'series',
+  'news',
+  'calendar',
+  'fundamentals',
+  'statements',
+  'insiders',
+  'ratings',
+  'earnings',
+  'earningscal',
+  'ipo',
+  'dividends',
+  'holdings',
+  'short',
+] as const;
 
 const KEY_FIELDS: { setting: string; label: string; hint: string }[] = [
-  { setting: 'key.finnhub', label: 'Finnhub', hint: 'adapter planned — key stored for later' },
-  { setting: 'key.alphavantage', label: 'Alpha Vantage', hint: 'adapter planned' },
-  { setting: 'key.fred', label: 'FRED', hint: 'adapter planned (economics)' },
+  {
+    setting: 'key.finnhub',
+    label: 'Finnhub',
+    hint: 'quotes+ws, insiders, ratings, earnings, IPO — finnhub.io/register',
+  },
+  {
+    setting: 'key.marketaux',
+    label: 'marketaux',
+    hint: 'news + entity sentiment (100 req/day) — marketaux.com',
+  },
+  {
+    setting: 'key.fred',
+    label: 'FRED',
+    hint: 'official US release calendar — fredaccount.stlouisfed.org/apikeys',
+  },
+  {
+    setting: 'key.alphavantage',
+    label: 'Alpha Vantage',
+    hint: 'non-US statements backup (25 req/day) — alphavantage.co',
+  },
 ];
+
+interface UsagePayload {
+  providers: ProviderUsage[];
+  live: { connected: boolean; subscriptions: number };
+}
 
 type LoadState =
   | { status: 'loading' }
@@ -21,6 +59,7 @@ type LoadState =
 export function Settings({ tab }: { tab: Tab }) {
   const { state: health, refresh: refreshHealth } = useHealth();
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [usage, setUsage] = useState<UsagePayload | null>(null);
   const [keyDrafts, setKeyDrafts] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState('');
 
@@ -33,6 +72,9 @@ export function Settings({ tab }: { tab: Tab }) {
           message: err instanceof Error ? err.message : 'request failed',
         }),
       );
+    getJson<UsagePayload>('/api/usage')
+      .then(setUsage)
+      .catch(() => setUsage(null));
   }, []);
 
   useEffect(() => {
@@ -147,6 +189,58 @@ export function Settings({ tab }: { tab: Tab }) {
                 is, or claims to be, official Bloomberg data. Demo data is synthetic and clearly
                 labeled wherever it renders.
               </p>
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">REQUEST USAGE (FREE-TIER BUDGETS)</div>
+              {usage ? (
+                <>
+                  <table className="grid-table">
+                    <thead>
+                      <tr>
+                        <th>Provider</th>
+                        <th className="num">Last min</th>
+                        <th className="num">Last hour</th>
+                        <th className="num">Today</th>
+                        <th className="num">Budget/min</th>
+                        <th className="num">Budget/day</th>
+                        <th className="num">Left today</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usage.providers.map((u) => {
+                        const leftDay =
+                          u.perDayLimit !== null ? Math.max(0, u.perDayLimit - u.today) : null;
+                        return (
+                          <tr key={u.provider}>
+                            <td>{u.provider}</td>
+                            <td className="num">{u.lastMinute}</td>
+                            <td className="num">{u.lastHour}</td>
+                            <td className="num">{u.today}</td>
+                            <td className="num dim">{u.perMinuteLimit ?? '∞'}</td>
+                            <td className="num dim">{u.perDayLimit ?? '∞'}</td>
+                            <td
+                              className={`num ${leftDay !== null && leftDay < 5 ? 'neg' : 'pos'}`}
+                            >
+                              {leftDay ?? '∞'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <p className="dim small">
+                    Budgets sit below published free-tier limits; when one is reached the app serves
+                    cached data instead of making requests. Live websocket:{' '}
+                    {usage.live.connected
+                      ? `connected, ${usage.live.subscriptions} symbols`
+                      : 'not connected (needs a Finnhub key and an open quote view)'}
+                    .
+                  </p>
+                </>
+              ) : (
+                <p className="dim small">usage unavailable</p>
+              )}
             </div>
 
             <div className="panel">

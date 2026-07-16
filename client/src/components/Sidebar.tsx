@@ -21,11 +21,28 @@ const SECTIONS: { label: string; items: CommandDef[] }[] = [
       MODULE_COMMAND.chart,
       MODULE_COMMAND.fundamentals,
       MODULE_COMMAND.statements,
+      MODULE_COMMAND.dividends,
+    ],
+  },
+  {
+    label: 'RESEARCH',
+    items: [
+      MODULE_COMMAND.insiders,
+      MODULE_COMMAND.ratings,
+      MODULE_COMMAND.earnings,
+      MODULE_COMMAND.ipo,
+      MODULE_COMMAND.holdings,
+      MODULE_COMMAND.short,
     ],
   },
   {
     label: 'ANALYTICS',
-    items: [MODULE_COMMAND.screener, MODULE_COMMAND.peers],
+    items: [
+      MODULE_COMMAND.screener,
+      MODULE_COMMAND.peers,
+      MODULE_COMMAND.heatmap,
+      MODULE_COMMAND.correlation,
+    ],
   },
   {
     label: 'WORKSPACE',

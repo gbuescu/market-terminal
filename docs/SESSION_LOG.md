@@ -4,6 +4,46 @@ Append one entry per Claude Code session. Newest at the top.
 
 ---
 
+## Session 9 — 2026-07-16 — Phase 8: Data expansion (near-real-time + research)
+
+**Repo state at start:** Phase 7, commit `67885df`. No API keys on the dev
+machine → strategy: live-verify everything keyless (EDGAR, heatmap,
+correlation, budgeting), build key-gated adapters carefully (finnhub ws,
+marketaux, FRED), be explicit about untested-until-key.
+
+**Server (commit 8a):** EDGAR adapter (companyfacts XBRL, multi-tag merge —
+fixed real bug where Apple's revenue tag transition nulled Revenue; verified
+FY2025 rev 416.2B as filed, 8 quarterlies, 24 dividend quarters), finnhub
+research endpoints + livequotes.ts websocket store (native Node WebSocket,
+LRU 40-symbol smart subscriptions, backoff reconnect), marketaux (entity
+sentiment), FRED (releases/dates), budget.ts + migration 005 request_log
+(conservative budgets, BudgetError → stale cache, /api/usage), freshness
+tier in envelope (cache hits never REALTIME), 8 new routes, statements
+period param, holdings/short = NO default provider (honest 503), MKT_KEY_*
+env fallback.
+
+**Client (commit 8b):** DataBadge freshness tiers; 9 modules: INS, AR
+(consensus + distribution bars), ERN (calendar/surprises dual-mode), IPO,
+DIV (EDGAR TTM), HOLD + SI (honest unavailable states), HEAT (SPDR sector
+tiles, live), CORR (local Pearson matrix over 6M returns, live); News
+sentiment chips + entity tags + keyword topic filters; FS ANNUAL/QTR
+toggle; SET usage panel (per-provider budgets + ws status) + marketaux key
+field; sidebar RESEARCH section; 9 explainers; .env.example; npm scripts
+use --env-file-if-exists=.env; README key table; DATA_PROVIDERS rewritten
+(provider plan, fallback logic, budgets, honest gaps, deferred backups).
+
+**Deferred (recorded):** Alpaca/Twelve Data/Marketstack backups (Marketstack
+free = 100 req/MONTH), AI digest (paid LLM key — ask first), options IV /
+transcripts / price targets / splits (no free source).
+
+**Verified live:** EDGAR statements+dividends (real Apple filings), HEAT
+12 tiles real sector moves, CORR real matrix (SPY/EFA 0.79, SPY/UUP −0.43),
+usage counters counting, holdings 503, all demo paths, FS QTR (8 quarters),
+News topic chips, SET usage panel. Finnhub/marketaux/FRED/ws paths compile +
+follow the tested adapter pattern but need keys to verify.
+
+---
+
 ## Session 8 — 2026-07-16 — Phase 7: Advanced charting (post-v1)
 
 **Repo state at start:** v1 complete (all 6 phases), commit `b6b67a3`.

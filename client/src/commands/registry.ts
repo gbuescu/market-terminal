@@ -23,7 +23,16 @@ export type ModuleId =
   | 'screener'
   | 'peers'
   | 'learn'
-  | 'glossary';
+  | 'glossary'
+  | 'insiders'
+  | 'ratings'
+  | 'earnings'
+  | 'ipo'
+  | 'dividends'
+  | 'holdings'
+  | 'short'
+  | 'heatmap'
+  | 'correlation';
 
 export interface CommandDef {
   /** Primary mnemonic, uppercase, e.g. 'GP' */
@@ -188,6 +197,96 @@ export const COMMANDS: readonly CommandDef[] = [
     takesSymbol: 'optional',
     keywords: ['relative', 'value', 'comparable', 'versus'],
     examples: ['RV', 'AAPL RV'],
+  },
+  {
+    mnemonic: 'INS',
+    aliases: ['INSIDER', 'INSIDERS'],
+    name: 'Insider Transactions',
+    description: 'Insider buys/sells from regulatory filings',
+    moduleId: 'insiders',
+    takesSymbol: 'required',
+    keywords: ['insider', 'form 4', 'executive', 'buys', 'sells'],
+    examples: ['AAPL INS'],
+  },
+  {
+    mnemonic: 'AR',
+    aliases: ['RATINGS', 'ANALYST', 'RECS'],
+    name: 'Analyst Ratings',
+    description: 'Recommendation trends — buy/hold/sell distribution',
+    moduleId: 'ratings',
+    takesSymbol: 'required',
+    keywords: ['analyst', 'recommendation', 'consensus', 'upgrade', 'downgrade'],
+    examples: ['AAPL AR'],
+  },
+  {
+    mnemonic: 'ERN',
+    aliases: ['EARN', 'EARNINGS'],
+    name: 'Earnings',
+    description: 'Earnings calendar; with a symbol: surprise history',
+    moduleId: 'earnings',
+    takesSymbol: 'optional',
+    keywords: ['eps', 'surprise', 'beat', 'miss', 'report', 'quarter'],
+    examples: ['ERN', 'AAPL ERN'],
+  },
+  {
+    mnemonic: 'IPO',
+    aliases: ['IPOS'],
+    name: 'IPO Calendar',
+    description: 'Upcoming and recent initial public offerings',
+    moduleId: 'ipo',
+    takesSymbol: 'none',
+    keywords: ['listing', 'offering', 'debut', 'new issue'],
+    examples: ['IPO'],
+  },
+  {
+    mnemonic: 'DIV',
+    aliases: ['DIVS', 'DIVIDEND', 'DIVIDENDS'],
+    name: 'Dividend History',
+    description: 'Per-share dividends as declared in SEC filings',
+    moduleId: 'dividends',
+    takesSymbol: 'required',
+    keywords: ['dividend', 'payout', 'yield history', 'distribution'],
+    examples: ['AAPL DIV'],
+  },
+  {
+    mnemonic: 'HOLD',
+    aliases: ['HOLDERS', '13F', 'OWNERSHIP'],
+    name: 'Institutional Holders',
+    description: '13F-style ownership (no free source — honest about it)',
+    moduleId: 'holdings',
+    takesSymbol: 'required',
+    keywords: ['institutional', 'ownership', 'funds', 'whales'],
+    examples: ['AAPL HOLD'],
+  },
+  {
+    mnemonic: 'SI',
+    aliases: ['SHORT', 'SHORTINT'],
+    name: 'Short Interest',
+    description: 'Short interest/float (no free source — honest about it)',
+    moduleId: 'short',
+    takesSymbol: 'required',
+    keywords: ['short', 'float', 'squeeze', 'days to cover'],
+    examples: ['AAPL SI'],
+  },
+  {
+    mnemonic: 'HEAT',
+    aliases: ['SECTORS', 'HEATMAP'],
+    name: 'Sector Heatmap',
+    description: 'Sector performance tiles via SPDR sector ETFs',
+    moduleId: 'heatmap',
+    takesSymbol: 'none',
+    keywords: ['sector', 'rotation', 'performance', 'map'],
+    examples: ['HEAT'],
+  },
+  {
+    mnemonic: 'CORR',
+    aliases: ['CORREL', 'CORRELATION'],
+    name: 'Cross-Asset Correlation',
+    description: 'Correlation matrix — equities, rates, gold, oil, USD, BTC',
+    moduleId: 'correlation',
+    takesSymbol: 'none',
+    keywords: ['correlation', 'diversification', 'cross asset', 'matrix'],
+    examples: ['CORR'],
   },
   {
     mnemonic: 'LEARN',
