@@ -42,6 +42,21 @@ usage counters counting, holdings 503, all demo paths, FS QTR (8 quarters),
 News topic chips, SET usage panel. Finnhub/marketaux/FRED/ws paths compile +
 follow the tested adapter pattern but need keys to verify.
 
+**Key activation (2026-07-17):** user registered all four free keys; stored
+in gitignored .env (MKT_KEY_*). Every keyed path then live-verified:
+finnhub ratings (AAPL 2026-07: 23 buy/16 hold), insiders (real Form 4s,
+60 rows), earnings surprises (+1.09% beat Q1'26), earnings calendar (120
+events), IPO calendar (25); **websocket connected with 3 subscriptions**
+and cleanly idle-closed after unsubscribe — full lifecycle observed;
+marketaux news with real article+entity sentiment (AAPL +0.54); FRED 60
+real releases (note: first call after boot can exceed the 10s fetch
+timeout — retry/cache absorbs it); Alpha Vantage OVERVIEW (IBM, P/E 18.7)
+then reverted fundamentals to auto (finnhub-first). Usage panel tracked
+everything (finnhub 8/day, marketaux 1, fred 2, AV 1). quotes stays
+yahoo-first on auto: finnhub free has no indices/FX, forcing it would
+break the monitor — documented; force finnhub per-capability for US-only
+work.
+
 ---
 
 ## Session 8 — 2026-07-16 — Phase 7: Advanced charting (post-v1)
