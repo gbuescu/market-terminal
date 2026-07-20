@@ -385,13 +385,15 @@ function demoStatements(
 
 // ---------- research content (Phase 8) ----------
 
+// Deliberately fictional names — demo data must never attribute fabricated
+// transactions to real people.
 const INSIDER_NAMES = [
-  'Cook Timothy D',
-  'Rivera Elena',
-  'Okafor Chidi',
-  'Lindqvist Maja',
-  'Tanaka Hiro',
-  'Meyer Johannes',
+  'Vantera Ilsa Q',
+  'Brockhollow Edmund',
+  'Nightpine Aurelia',
+  'Quenneville Oskar',
+  'Starkfield Romilly',
+  'Ashgrove Percival',
 ];
 const TX_CODES = ['P', 'S', 'S', 'A', 'S', 'P'] as const;
 
@@ -506,13 +508,15 @@ function demoDividends(symbol: string): DividendRow[] {
   });
 }
 
+// Fictional institutions — demo holdings must not attribute fabricated
+// positions to real asset managers.
 const HOLDER_NAMES = [
-  'Vanguard Group Inc',
-  'BlackRock Inc',
-  'State Street Corp',
-  'Fidelity (FMR LLC)',
-  'Geode Capital Management',
-  'T. Rowe Price Associates',
+  'Northgate Index Partners',
+  'Meridian Rock Asset Mgmt',
+  'Harborline Trust Co',
+  'Beacon & Wren Advisors',
+  'Cobalt Ridge Capital',
+  'Silverbirch Funds LLC',
 ];
 
 function demoHoldings(symbol: string): HoldingRow[] {

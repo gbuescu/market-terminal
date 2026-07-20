@@ -16,9 +16,13 @@ import { spendRequest } from '../budget.ts';
 import { getOrFetch } from '../cache.ts';
 import { type Provider, Unsupported } from './types.ts';
 
-// SEC asks for a descriptive User-Agent with contact info.
+// SEC fair-access policy asks for a descriptive User-Agent with contact
+// info. Set MKT_EDGAR_CONTACT in .env to your email; the neutral default
+// works but is less polite to SEC's ops team.
 const HEADERS = {
-  'User-Agent': 'market-terminal (local research app; contact-not-configured)',
+  'User-Agent': `market-terminal (local research app; contact: ${
+    process.env.MKT_EDGAR_CONTACT?.trim() || 'not-configured'
+  })`,
   Accept: 'application/json',
 };
 
