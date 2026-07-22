@@ -121,7 +121,7 @@ export function Settings({ tab }: { tab: Tab }) {
               kind="error"
               title="API unreachable"
               detail={health.error}
-              hint="Start it with .\run.ps1 (or npm run dev:server), then REFRESH."
+              hint="Start it from the repo folder with .\run.cmd -Prod (or npm run start), then REFRESH."
             />
           )}
           {health.status === 'up' && (
