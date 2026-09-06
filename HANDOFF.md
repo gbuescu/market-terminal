@@ -7,7 +7,8 @@ and work on it competently without re-deriving anything.
 - **Document generated:** 2026-09-06, from a verified scan of the live repo.
 - **Last active development:** 2026-07-17 (the code has been dormant ~7 weeks;
   it still runs — providers were re-verified live on 2026-09-06).
-- **Repo:** `C:\Users\buesc\PycharmProjects\market-terminal` (Windows)
+- **Repo:** a local Windows checkout. Paths below write `<repo>` for wherever
+  it is cloned (the owner keeps it under their user profile).
 - **Remote:** `https://github.com/gbuescu/market-terminal.git` (private)
 - **State:** branch `master`, 15 commits, working tree clean, 96 tracked files,
   ~10,660 lines of TS/TSX/CSS across 75 source files, DB schema v5.
@@ -69,7 +70,7 @@ student mode) is a first-class feature, not decoration.
 ## 3. Run it (Windows / PowerShell)
 
 ```powershell
-cd C:\Users\buesc\PycharmProjects\market-terminal
+cd <repo>            # wherever you cloned market-terminal
 .\run.cmd -Prod      # build client once, serve everything from :4780
 .\run.cmd            # dev mode: API :4780 + Vite :5173 (hot reload)
 .\stop.cmd           # stop everything (kills by port)
