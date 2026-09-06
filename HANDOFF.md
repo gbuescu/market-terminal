@@ -8,7 +8,7 @@ and work on it competently without re-deriving anything.
 - **Last active development:** 2026-07-17 (the code has been dormant ~7 weeks;
   it still runs — providers were re-verified live on 2026-09-06).
 - **Repo:** `C:\Users\buesc\PycharmProjects\market-terminal` (Windows)
-- **Remote:** `https://github.com/Burlesconi/market-terminal.git` (private)
+- **Remote:** `https://github.com/gbuescu/market-terminal.git` (private)
 - **State:** branch `master`, 15 commits, working tree clean, 96 tracked files,
   ~10,660 lines of TS/TSX/CSS across 75 source files, DB schema v5.
 
